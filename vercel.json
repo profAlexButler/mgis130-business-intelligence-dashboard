@@ -11,8 +11,5 @@
       "src": "/api/stocks",
       "dest": "/api/stocks.js"
     }
-  ],
-  "env": {
-    "API_KEY": "@api_key"
-  }
+  ]
 }
