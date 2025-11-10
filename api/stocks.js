@@ -9,6 +9,9 @@
  * - API_KEY: API Ninjas authentication key
  */
 
+// Import Node.js built-in https module for API requests
+const https = require('https');
+
 // Company information mapping
 const COMPANIES = [
   { ticker: 'AAPL', name: 'Apple Inc.' },
@@ -19,33 +22,60 @@ const COMPANIES = [
 ];
 
 /**
- * Fetches stock price for a single ticker symbol
+ * Fetches stock price for a single ticker symbol using Node.js https module
  * @param {string} ticker - Stock ticker symbol
  * @param {string} apiKey - API Ninjas API key
  * @returns {Promise<Object>} Stock data object
  */
-async function fetchStockPrice(ticker, apiKey) {
-  const url = `https://api.api-ninjas.com/v1/stockprice?ticker=${ticker}`;
+function fetchStockPrice(ticker, apiKey) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.api-ninjas.com',
+      path: `/v1/stockprice?ticker=${ticker}`,
+      method: 'GET',
+      headers: {
+        'X-Api-Key': apiKey
+      }
+    };
 
-  const response = await fetch(url, {
-    headers: {
-      'X-Api-Key': apiKey
-    }
+    const req = https.request(options, (res) => {
+      let data = '';
+
+      // Collect data chunks
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      // Process complete response
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          try {
+            const jsonData = JSON.parse(data);
+            resolve(jsonData);
+          } catch (error) {
+            reject(new Error(`Failed to parse JSON for ${ticker}: ${error.message}`));
+          }
+        } else {
+          reject(new Error(`Failed to fetch ${ticker}: ${res.statusCode} ${res.statusMessage}`));
+        }
+      });
+    });
+
+    // Handle request errors
+    req.on('error', (error) => {
+      reject(new Error(`Network error fetching ${ticker}: ${error.message}`));
+    });
+
+    // Send the request
+    req.end();
   });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${ticker}: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data;
 }
 
 /**
  * Main serverless function handler
  * Vercel will automatically invoke this function for requests to /api/stocks
  */
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Set CORS headers for cross-origin requests
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
