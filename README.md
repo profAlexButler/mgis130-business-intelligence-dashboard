@@ -2,7 +2,7 @@
 
 A professional business intelligence dashboard for tracking competitor stock performance in the technology sector. Built with vanilla JavaScript and designed for deployment on Vercel.
 
-**Class Project**: MGIS130 - Business Intelligence Dashboard with automated data retrieval and export functionality.
+**Class Project**: MGIS130 - Business Intelligence Dashboard with automated data retrieval and export functionality. For use by RIT Saunders College of Business students.
 
 ## Features
 
