@@ -164,23 +164,37 @@ function extractKeyStatements(transcript) {
 
     // Focus on CEO and CFO statements (most important for sentiment)
     const keyRoles = ['Chief Executive Officer', 'Chief Financial Officer', 'Chairman'];
-    const keyStatements = transcriptSplit
+    const executiveStatements = transcriptSplit
       .filter(item => item && item.role && keyRoles.some(role => item.role.includes(role)))
-      .slice(0, 3) // Get first 3 key executive statements
+      .filter(item => item.text); // Remove any null/undefined texts
+
+    // Take statements from the MIDDLE/END of the call (skip first statement which is often intro)
+    // Get last 3 executive statements for better sentiment (Q&A, conclusions)
+    const relevantStatements = executiveStatements.length > 3
+      ? executiveStatements.slice(-3) // Last 3 statements
+      : executiveStatements; // All statements if <= 3
+
+    const keyStatements = relevantStatements
       .map(item => item.text)
-      .filter(text => text) // Remove any null/undefined texts
       .join(' ');
 
-    console.log('Extracted key statements length:', keyStatements.length);
+    console.log('Extracted key statements from', relevantStatements.length, 'executive statements (total:', executiveStatements.length, ')');
+    console.log('Key statements length:', keyStatements.length);
     if (keyStatements) {
       return keyStatements;
     }
   }
 
   // Fallback to full transcript text if available
+  // Use the END of the transcript to avoid introductions and get Q&A/conclusions
   if (transcript.transcript && typeof transcript.transcript === 'string') {
     console.log('Using full transcript fallback, length:', transcript.transcript.length);
-    return transcript.transcript.substring(0, 1000); // Reduced from 2000 to avoid URL length issues
+    const transcriptLength = transcript.transcript.length;
+    // Take the last 1000 characters for better sentiment (Q&A, conclusions, not intros)
+    const startPos = Math.max(0, transcriptLength - 1000);
+    const endSegment = transcript.transcript.substring(startPos);
+    console.log('Using end segment from position', startPos, 'to', transcriptLength);
+    return endSegment;
   }
 
   console.log('No suitable transcript data found');
