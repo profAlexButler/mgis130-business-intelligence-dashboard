@@ -136,14 +136,14 @@ async function fetchInterestRateData(apiKey) {
 }
 
 /**
- * Fetches GDP data from API Ninjas
+ * Fetches mortgage rate data from API Ninjas
  * @param {string} apiKey - API Ninjas API key
- * @returns {Promise<Object>} GDP data or null
+ * @returns {Promise<Object>} Mortgage rate data or null
  */
-async function fetchGDPData(apiKey) {
+async function fetchMortgageRateData(apiKey) {
   try {
-    // Try the gdp endpoint
-    const result = await fetchFromApiNinjas('/v1/gdp', apiKey);
+    // Mortgage rate endpoint
+    const result = await fetchFromApiNinjas('/v1/mortgagerate', apiKey);
 
     if (!result.success) {
       return null;
@@ -155,19 +155,21 @@ async function fetchGDPData(apiKey) {
     if (Array.isArray(jsonData) && jsonData.length > 0) {
       const latest = jsonData[0];
       return {
-        value: parseFloat(latest.growth_rate || latest.rate || latest.value) || 0,
-        period: latest.period || latest.year || 'Recent'
+        value: parseFloat(latest.rate || latest.value) || 0,
+        period: latest.date || latest.period || 'Current',
+        type: latest.type || '30-year fixed'
       };
-    } else if (jsonData.growth_rate !== undefined || jsonData.value !== undefined) {
+    } else if (jsonData.rate !== undefined || jsonData.value !== undefined) {
       return {
-        value: parseFloat(jsonData.growth_rate || jsonData.value) || 0,
-        period: jsonData.period || jsonData.year || 'Recent'
+        value: parseFloat(jsonData.rate || jsonData.value) || 0,
+        period: jsonData.date || jsonData.period || 'Current',
+        type: jsonData.type || '30-year fixed'
       };
     }
 
     return null;
   } catch (error) {
-    console.error('Error fetching GDP:', error);
+    console.error('Error fetching mortgage rate:', error);
     return null;
   }
 }
@@ -237,12 +239,12 @@ function getInterestRateStatus(rate) {
 }
 
 /**
- * Get status level for GDP growth rate
+ * Get status level for mortgage rate
  */
-function getGDPStatus(rate) {
-  if (rate < 0) return { level: 'concerning', color: 'red', label: 'Negative' };
-  if (rate < 2) return { level: 'moderate', color: 'yellow', label: 'Slow' };
-  return { level: 'good', color: 'green', label: 'Healthy' };
+function getMortgageRateStatus(rate) {
+  if (rate < 4) return { level: 'good', color: 'green', label: 'Low' };
+  if (rate < 6) return { level: 'moderate', color: 'yellow', label: 'Moderate' };
+  return { level: 'concerning', color: 'red', label: 'High' };
 }
 
 /**
@@ -291,10 +293,10 @@ module.exports = async function handler(req, res) {
     }
 
     // Fetch all economic indicators in parallel
-    const [inflationData, interestRateData, gdpData, unemploymentData] = await Promise.all([
+    const [inflationData, interestRateData, mortgageRateData, unemploymentData] = await Promise.all([
       fetchInflationData(apiKey),
       fetchInterestRateData(apiKey),
-      fetchGDPData(apiKey),
+      fetchMortgageRateData(apiKey),
       fetchUnemploymentData(apiKey)
     ]);
 
@@ -324,25 +326,25 @@ module.exports = async function handler(req, res) {
       };
     }
 
-    // GDP
-    if (gdpData) {
-      indicators.gdp = {
-        name: 'GDP Growth Rate',
-        value: gdpData.value,
+    // Mortgage Rate
+    if (mortgageRateData) {
+      indicators.mortgageRate = {
+        name: 'Mortgage Rate (30-yr)',
+        value: mortgageRateData.value,
         unit: '%',
-        period: gdpData.period,
-        status: getGDPStatus(gdpData.value),
+        period: mortgageRateData.period,
+        status: getMortgageRateStatus(mortgageRateData.value),
         available: true
       };
-      availableSources.push('GDP');
+      availableSources.push('Mortgage Rate');
     } else {
-      indicators.gdp = {
-        name: 'GDP Growth Rate',
+      indicators.mortgageRate = {
+        name: 'Mortgage Rate (30-yr)',
         value: null,
         unit: '%',
         status: { level: 'info', color: 'blue', label: 'N/A' },
         available: false,
-        note: 'Not available via API Ninjas - consider FRED API integration'
+        note: 'Data temporarily unavailable'
       };
     }
 
@@ -364,7 +366,7 @@ module.exports = async function handler(req, res) {
         unit: '%',
         status: { level: 'info', color: 'blue', label: 'N/A' },
         available: false,
-        note: 'Not available via API Ninjas - consider BLS API integration'
+        note: 'Data temporarily unavailable'
       };
     }
 
@@ -386,7 +388,7 @@ module.exports = async function handler(req, res) {
         unit: '%',
         status: { level: 'info', color: 'blue', label: 'N/A' },
         available: false,
-        note: 'Not available via API Ninjas - consider FRED API integration'
+        note: 'Data temporarily unavailable'
       };
     }
 
