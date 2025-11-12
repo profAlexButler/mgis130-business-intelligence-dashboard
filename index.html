@@ -626,6 +626,222 @@
             }
         }
 
+        /* AI Recommendations Section */
+        .ai-recommendations-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .ai-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .ai-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .ai-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .stock-selector {
+            margin-bottom: 30px;
+        }
+
+        .stock-selector h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+
+        .stock-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stock-button {
+            padding: 20px;
+            background: var(--secondary-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .stock-button:hover {
+            border-color: var(--accent-orange);
+            background: var(--card-bg);
+            transform: translateY(-2px);
+        }
+
+        .stock-button.analyzing {
+            border-color: var(--accent-orange);
+            background: rgba(230, 126, 34, 0.1);
+        }
+
+        .stock-button h4 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .stock-button p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Recommendation Results */
+        .recommendation-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, #252b4a 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 2px solid var(--border-color);
+        }
+
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .recommendation-title {
+            font-size: 1.8rem;
+            color: var(--text-primary);
+        }
+
+        .recommendation-badge {
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .recommendation-badge.buy {
+            background: rgba(44, 95, 45, 0.3);
+            color: var(--success-green-light);
+            border: 2px solid var(--success-green);
+        }
+
+        .recommendation-badge.hold {
+            background: rgba(243, 156, 18, 0.3);
+            color: var(--warning-yellow);
+            border: 2px solid var(--warning-yellow);
+        }
+
+        .recommendation-badge.sell {
+            background: rgba(231, 76, 60, 0.3);
+            color: var(--danger-red);
+            border: 2px solid var(--danger-red);
+        }
+
+        .recommendation-summary {
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--accent-orange);
+        }
+
+        .recommendation-summary p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        .recommendation-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .detail-card {
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .detail-card h4 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .detail-card .subtext {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .reasoning-section {
+            margin-bottom: 25px;
+        }
+
+        .reasoning-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .reasoning-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .reasoning-list li {
+            background: var(--secondary-bg);
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--accent-orange);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .disclaimer-box {
+            background: rgba(231, 76, 60, 0.1);
+            border: 2px solid var(--danger-red);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .disclaimer-box h4 {
+            color: var(--danger-red);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .disclaimer-box p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
         /* Accessibility: Focus states */
         .btn:focus,
         button:focus,
@@ -669,8 +885,10 @@
             <button class="tab-button" onclick="switchTab('compare')">
                 📈 Compare Stocks
             </button>
+            <button class="tab-button" onclick="switchTab('ai')">
+                🤖 AI Recommendations
+            </button>
         </div>
-
         <!-- Dashboard Tab -->
         <div id="dashboard-tab" class="tab-content active">
             <!-- Economic Indicators Panel -->
@@ -764,6 +982,41 @@
                 <div class="error-state" id="comparisonErrorState">
                     <h3>⚠️ Unable to Generate Comparison</h3>
                     <p>Please try selecting different stocks or refresh the page.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Recommendations Tab -->
+        <div id="ai-tab" class="tab-content">
+            <div class="ai-recommendations-section">
+                <div class="ai-header">
+                    <h2>🤖 AI-Powered Investment Recommendations</h2>
+                    <p class="ai-subtitle">Analyze earnings sentiment, price trends, and economic indicators to generate data-driven investment insights</p>
+                </div>
+
+                <!-- Stock Selector -->
+                <div class="stock-selector">
+                    <h3>Select a Stock to Analyze</h3>
+                    <div class="stock-buttons" id="aiStockButtons">
+                        <!-- Buttons will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Analysis Results Container -->
+                <div id="aiResults" style="display: none;">
+                    <!-- Results will be populated here -->
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="aiLoadingState">
+                    <div class="spinner"></div>
+                    <p>Analyzing earnings data and generating recommendations...</p>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state" id="aiErrorState">
+                    <h3>⚠️ Unable to Generate Analysis</h3>
+                    <p id="aiErrorMessage">Please try again or select a different stock.</p>
                 </div>
             </div>
         </div>
@@ -1485,6 +1738,167 @@
 
             URL.revokeObjectURL(url);
         }
+
+        /**
+         * Initializes AI Recommendations tab
+         */
+        function initializeAITab() {
+            const container = document.getElementById('aiStockButtons');
+
+            COMPANIES.forEach(company => {
+                const button = document.createElement('div');
+                button.className = 'stock-button';
+                button.onclick = () => analyzeStock(company.ticker);
+                button.innerHTML = `
+                    <h4>${company.ticker}</h4>
+                    <p>${company.name}</p>
+                `;
+                container.appendChild(button);
+            });
+        }
+
+        /**
+         * Analyzes a stock for investment recommendations
+         */
+        async function analyzeStock(ticker) {
+            const loadingState = document.getElementById('aiLoadingState');
+            const errorState = document.getElementById('aiErrorState');
+            const resultsContainer = document.getElementById('aiResults');
+
+            // Show loading
+            loadingState.classList.add('active');
+            errorState.classList.remove('active');
+            resultsContainer.style.display = 'none';
+
+            // Highlight selected stock
+            document.querySelectorAll('.stock-button').forEach(btn => {
+                btn.classList.remove('analyzing');
+            });
+            event.target.closest('.stock-button').classList.add('analyzing');
+
+            try {
+                const response = await fetch(`/api/earnings-analysis?ticker=${ticker}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error('Failed to generate analysis');
+                }
+
+                // Display results
+                displayRecommendation(result.data);
+
+                loadingState.classList.remove('active');
+                resultsContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error analyzing stock:', error);
+                loadingState.classList.remove('active');
+                errorState.classList.add('active');
+                document.getElementById('aiErrorMessage').textContent = error.message;
+            }
+        }
+
+        /**
+         * Displays the recommendation results
+         */
+        function displayRecommendation(data) {
+            const container = document.getElementById('aiResults');
+            const rec = data.recommendation;
+            const company = COMPANIES.find(c => c.ticker === data.ticker);
+
+            const sentimentEmoji = data.sentimentAnalysis
+                ? (data.sentimentAnalysis.sentiment === 'POSITIVE' ? '😊' :
+                   data.sentimentAnalysis.sentiment === 'NEGATIVE' ? '😟' : '😐')
+                : '❓';
+
+            const trendEmoji = data.historicalTrend
+                ? (data.historicalTrend.trendDirection === 'up' ? '📈' : '📉')
+                : '➖';
+
+            container.innerHTML = `
+                <div class="recommendation-card fade-in">
+                    <div class="recommendation-header">
+                        <div class="recommendation-title">
+                            ${company ? company.name : data.ticker} (${data.ticker})
+                        </div>
+                        <div class="recommendation-badge ${rec.recommendation.toLowerCase()}">
+                            ${rec.recommendation}
+                        </div>
+                    </div>
+
+                    <div class="recommendation-summary">
+                        <p><strong>Summary:</strong> ${rec.summary}</p>
+                    </div>
+
+                    <div class="recommendation-details">
+                        <div class="detail-card">
+                            <h4>Current Price</h4>
+                            <div class="value">$${data.stockData ? data.stockData.price.toFixed(2) : 'N/A'}</div>
+                            <div class="subtext">As of ${new Date(data.timestamp).toLocaleDateString()}</div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h4>Sentiment ${sentimentEmoji}</h4>
+                            <div class="value">${data.sentimentAnalysis
+                                ? data.sentimentAnalysis.sentiment
+                                : 'N/A'}</div>
+                            <div class="subtext">${data.sentimentAnalysis
+                                ? `${(data.sentimentAnalysis.score * 100).toFixed(0)}% confidence`
+                                : 'No earnings data'}</div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h4>30-Day Trend ${trendEmoji}</h4>
+                            <div class="value">${data.historicalTrend
+                                ? `${data.historicalTrend.trendPercent > 0 ? '+' : ''}${data.historicalTrend.trendPercent.toFixed(1)}%`
+                                : 'N/A'}</div>
+                            <div class="subtext">${data.historicalTrend
+                                ? `$${data.historicalTrend.low} - $${data.historicalTrend.high}`
+                                : 'No trend data'}</div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h4>Confidence Level</h4>
+                            <div class="value">${rec.confidence}</div>
+                            <div class="subtext">Risk: ${rec.riskLevel}</div>
+                        </div>
+                    </div>
+
+                    <div class="reasoning-section">
+                        <h3>📋 Analysis Factors</h3>
+                        <ul class="reasoning-list">
+                            ${rec.reasoning.map(reason => `<li>${reason}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    ${data.earningsData && data.earningsData.hasTranscript ? `
+                        <div style="background: var(--secondary-bg); padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                            <strong>📄 Earnings Data:</strong> Q${data.earningsData.quarter} ${data.earningsData.year}
+                            (${data.earningsData.date})
+                        </div>
+                    ` : `
+                        <div style="background: rgba(243, 156, 18, 0.1); padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid var(--warning-yellow);">
+                            <strong>⚠️ Note:</strong> Earnings transcript not available. Analysis based on price trends and economic indicators only.
+                        </div>
+                    `}
+
+                    <div class="disclaimer-box">
+                        <h4>⚠️ Disclaimer</h4>
+                        <p>${rec.disclaimer}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize AI tab on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeAITab();
+        });
     </script>
 </body>
 </html>
