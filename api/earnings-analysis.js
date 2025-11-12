@@ -114,11 +114,19 @@ async function analyzeSentiment(text, apiKey) {
  */
 function extractKeyStatements(transcript) {
   if (!transcript) {
+    console.log('No transcript provided');
     return '';
   }
 
+  console.log('Transcript keys:', Object.keys(transcript));
+  console.log('transcript_split type:', typeof transcript.transcript_split);
+  console.log('transcript_split is array?', Array.isArray(transcript.transcript_split));
+
   // Check if transcript_split is an array before using it
   if (Array.isArray(transcript.transcript_split) && transcript.transcript_split.length > 0) {
+    console.log('transcript_split length:', transcript.transcript_split.length);
+    console.log('First item sample:', JSON.stringify(transcript.transcript_split[0]).substring(0, 200));
+
     // Focus on CEO and CFO statements (most important for sentiment)
     const keyRoles = ['Chief Executive Officer', 'Chief Financial Officer', 'Chairman'];
     const keyStatements = transcript.transcript_split
@@ -128,6 +136,7 @@ function extractKeyStatements(transcript) {
       .filter(text => text) // Remove any null/undefined texts
       .join(' ');
 
+    console.log('Extracted key statements length:', keyStatements.length);
     if (keyStatements) {
       return keyStatements;
     }
@@ -135,9 +144,11 @@ function extractKeyStatements(transcript) {
 
   // Fallback to full transcript text if available
   if (transcript.transcript && typeof transcript.transcript === 'string') {
+    console.log('Using full transcript fallback, length:', transcript.transcript.length);
     return transcript.transcript.substring(0, 2000);
   }
 
+  console.log('No suitable transcript data found');
   return '';
 }
 
