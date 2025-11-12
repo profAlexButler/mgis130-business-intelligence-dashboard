@@ -842,6 +842,210 @@
             line-height: 1.6;
         }
 
+        /* Earnings Comparison Section */
+        .earnings-comparison-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .earnings-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .earnings-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .earnings-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .earnings-selector {
+            margin-bottom: 40px;
+        }
+
+        .earnings-selector h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .company-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .company-picker {
+            background: var(--secondary-bg);
+            padding: 25px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+        }
+
+        .company-picker label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .company-select {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1rem;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .company-select:hover {
+            border-color: var(--accent-orange);
+        }
+
+        .company-select:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.2);
+        }
+
+        .company-select option {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .company-info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .company-info-card {
+            background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
+            padding: 25px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+        }
+
+        .company-info-card h3 {
+            font-size: 1.5rem;
+            color: var(--accent-orange);
+            margin-bottom: 15px;
+        }
+
+        .company-info-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .company-info-card strong {
+            color: var(--text-primary);
+        }
+
+        .financial-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .financial-section {
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        .financial-section h3 {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .comparison-table-container {
+            overflow-x: auto;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .comparison-table th {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .comparison-table th:first-child {
+            width: 40%;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table td:first-child {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .metric-positive {
+            color: var(--success-green-light);
+        }
+
+        .metric-negative {
+            color: var(--danger-red);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+
         /* Accessibility: Focus states */
         .btn:focus,
         button:focus,
@@ -887,6 +1091,9 @@
             </button>
             <button class="tab-button" onclick="switchTab('ai')">
                 🤖 AI Recommendations
+            </button>
+            <button class="tab-button" onclick="switchTab('earnings')">
+                💰 Compare Earnings
             </button>
         </div>
         <!-- Dashboard Tab -->
@@ -1017,6 +1224,104 @@
                 <div class="error-state" id="aiErrorState">
                     <h3>⚠️ Unable to Generate Analysis</h3>
                     <p id="aiErrorMessage">Please try again or select a different stock.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compare Earnings Tab -->
+        <div id="earnings-tab" class="tab-content">
+            <div class="earnings-comparison-section">
+                <div class="earnings-header">
+                    <h2>💰 Compare Company Financials</h2>
+                    <p class="earnings-subtitle">Side-by-side comparison of income statements, balance sheets, and cash flows</p>
+                </div>
+
+                <!-- Company Selection -->
+                <div class="earnings-selector">
+                    <h3>Select Two Companies to Compare</h3>
+                    <div class="company-selection-grid">
+                        <div class="company-picker">
+                            <label for="company1Select">Company 1</label>
+                            <select id="company1Select" class="company-select" onchange="loadComparisonData()">
+                                <option value="">Select a company...</option>
+                                <option value="AAPL">Apple (AAPL)</option>
+                                <option value="MSFT">Microsoft (MSFT)</option>
+                                <option value="GOOGL">Google (GOOGL)</option>
+                                <option value="META">Meta (META)</option>
+                                <option value="AMZN">Amazon (AMZN)</option>
+                            </select>
+                        </div>
+                        <div class="company-picker">
+                            <label for="company2Select">Company 2</label>
+                            <select id="company2Select" class="company-select" onchange="loadComparisonData()">
+                                <option value="">Select a company...</option>
+                                <option value="AAPL">Apple (AAPL)</option>
+                                <option value="MSFT">Microsoft (MSFT)</option>
+                                <option value="GOOGL">Google (GOOGL)</option>
+                                <option value="META">Meta (META)</option>
+                                <option value="AMZN">Amazon (AMZN)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Results -->
+                <div id="earningsResults" style="display: none;">
+                    <!-- Company Info Cards -->
+                    <div class="company-info-cards" id="companyInfoCards">
+                        <!-- Will be populated with company info -->
+                    </div>
+
+                    <!-- Financial Comparison Tables -->
+                    <div class="financial-sections">
+                        <!-- Income Statement -->
+                        <div class="financial-section">
+                            <h3>📊 Income Statement</h3>
+                            <div class="comparison-table-container">
+                                <table class="comparison-table" id="incomeStatementTable">
+                                    <!-- Will be populated with data -->
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Balance Sheet -->
+                        <div class="financial-section">
+                            <h3>💼 Balance Sheet</h3>
+                            <div class="comparison-table-container">
+                                <table class="comparison-table" id="balanceSheetTable">
+                                    <!-- Will be populated with data -->
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Cash Flow -->
+                        <div class="financial-section">
+                            <h3>💵 Cash Flow Statement</h3>
+                            <div class="comparison-table-container">
+                                <table class="comparison-table" id="cashFlowTable">
+                                    <!-- Will be populated with data -->
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="earningsLoadingState" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Loading financial data...</p>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state" id="earningsErrorState" style="display: none;">
+                    <h3>⚠️ Unable to Load Financial Data</h3>
+                    <p id="earningsErrorMessage">Please try again or select different companies.</p>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="earningsEmptyState">
+                    <h3>👆 Select Two Companies Above</h3>
+                    <p>Choose two companies from the dropdowns to compare their financial statements</p>
                 </div>
             </div>
         </div>
@@ -1899,6 +2204,259 @@
         window.addEventListener('DOMContentLoaded', () => {
             initializeAITab();
         });
+
+        /**
+         * Earnings Comparison Functionality
+         */
+
+        /**
+         * Loads and displays earnings comparison data
+         */
+        async function loadComparisonData() {
+            const company1 = document.getElementById('company1Select').value;
+            const company2 = document.getElementById('company2Select').value;
+
+            // Hide all states
+            document.getElementById('earningsResults').style.display = 'none';
+            document.getElementById('earningsLoadingState').style.display = 'none';
+            document.getElementById('earningsErrorState').style.display = 'none';
+            document.getElementById('earningsEmptyState').style.display = 'none';
+
+            // Check if both companies are selected
+            if (!company1 || !company2) {
+                document.getElementById('earningsEmptyState').style.display = 'block';
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('earningsLoadingState').style.display = 'flex';
+
+            try {
+                // Fetch earnings data for both companies
+                const [data1Response, data2Response] = await Promise.all([
+                    fetch(`/api/earnings?ticker=${company1}`),
+                    fetch(`/api/earnings?ticker=${company2}`)
+                ]);
+
+                if (!data1Response.ok || !data2Response.ok) {
+                    throw new Error('Failed to fetch earnings data');
+                }
+
+                const data1Result = await data1Response.json();
+                const data2Result = await data2Response.json();
+
+                if (!data1Result.success || !data2Result.success) {
+                    throw new Error('Earnings data not available');
+                }
+
+                const data1 = data1Result.data;
+                const data2 = data2Result.data;
+
+                // Hide loading, show results
+                document.getElementById('earningsLoadingState').style.display = 'none';
+                document.getElementById('earningsResults').style.display = 'block';
+
+                // Display the comparison
+                displayEarningsComparison(data1, data2, company1, company2);
+
+            } catch (error) {
+                console.error('Error loading earnings data:', error);
+                document.getElementById('earningsLoadingState').style.display = 'none';
+                document.getElementById('earningsErrorState').style.display = 'block';
+                document.getElementById('earningsErrorMessage').textContent = error.message;
+            }
+        }
+
+        /**
+         * Displays earnings comparison data
+         */
+        function displayEarningsComparison(data1, data2, ticker1, ticker2) {
+            // Display company info cards
+            displayCompanyInfo(data1, data2, ticker1, ticker2);
+
+            // Display financial tables
+            displayIncomeStatement(data1, data2, ticker1, ticker2);
+            displayBalanceSheet(data1, data2, ticker1, ticker2);
+            displayCashFlow(data1, data2, ticker1, ticker2);
+        }
+
+        /**
+         * Displays company information cards
+         */
+        function displayCompanyInfo(data1, data2, ticker1, ticker2) {
+            const container = document.getElementById('companyInfoCards');
+            container.innerHTML = `
+                <div class="company-info-card">
+                    <h3>${ticker1}</h3>
+                    <p><strong>Company:</strong> ${data1.company_info.company_name}</p>
+                    <p><strong>Fiscal Year:</strong> ${data1.company_info.fiscal_year}</p>
+                    <p><strong>Quarter:</strong> Q${data1.company_info.fiscal_quarter}</p>
+                    <p><strong>Filing Date:</strong> ${data1.filing_info.filing_date}</p>
+                    <p><strong>Period End:</strong> ${data1.filing_info.period_end_date}</p>
+                </div>
+                <div class="company-info-card">
+                    <h3>${ticker2}</h3>
+                    <p><strong>Company:</strong> ${data2.company_info.company_name}</p>
+                    <p><strong>Fiscal Year:</strong> ${data2.company_info.fiscal_year}</p>
+                    <p><strong>Quarter:</strong> Q${data2.company_info.fiscal_quarter}</p>
+                    <p><strong>Filing Date:</strong> ${data2.filing_info.filing_date}</p>
+                    <p><strong>Period End:</strong> ${data2.filing_info.period_end_date}</p>
+                </div>
+            `;
+        }
+
+        /**
+         * Displays income statement comparison
+         */
+        function displayIncomeStatement(data1, data2, ticker1, ticker2) {
+            const table = document.getElementById('incomeStatementTable');
+            const income1 = data1.income_statement;
+            const income2 = data2.income_statement;
+
+            const metrics = [
+                { label: 'Total Revenue', key: 'total_revenue' },
+                { label: 'Cost of Revenue', key: 'cost_of_revenue' },
+                { label: 'Gross Profit', key: 'gross_profit' },
+                { label: 'Operating Income', key: 'operating_income' },
+                { label: 'Net Income', key: 'net_income' },
+                { label: 'Research & Development', key: 'research_and_development' },
+                { label: 'Sales & Marketing', key: 'sales_and_marketing' },
+                { label: 'General & Administrative', key: 'general_and_administrative' },
+                { label: 'Earnings Per Share (Basic)', key: 'earnings_per_share_basic' },
+                { label: 'Earnings Per Share (Diluted)', key: 'earnings_per_share_diluted' },
+                { label: 'Tax Provision', key: 'tax_provision' },
+                { label: 'Interest Expense', key: 'interest_expense' }
+            ];
+
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>${ticker1}</th>
+                        <th>${ticker2}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${metrics.map(metric => `
+                        <tr>
+                            <td>${metric.label}</td>
+                            <td>${formatFinancialValue(income1[metric.key], metric.key)}</td>
+                            <td>${formatFinancialValue(income2[metric.key], metric.key)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+        }
+
+        /**
+         * Displays balance sheet comparison
+         */
+        function displayBalanceSheet(data1, data2, ticker1, ticker2) {
+            const table = document.getElementById('balanceSheetTable');
+            const balance1 = data1.balance_sheet;
+            const balance2 = data2.balance_sheet;
+
+            const metrics = [
+                { label: 'Total Assets', key: 'total_assets' },
+                { label: 'Current Assets', key: 'current_assets' },
+                { label: 'Cash and Equivalents', key: 'cash_and_equivalents' },
+                { label: 'Accounts Receivable', key: 'accounts_receivable' },
+                { label: 'Property, Plant & Equipment', key: 'property_plant_equipment' },
+                { label: 'Goodwill', key: 'goodwill' },
+                { label: 'Intangible Assets', key: 'intangible_assets' },
+                { label: 'Total Liabilities', key: 'total_liabilities' },
+                { label: 'Current Liabilities', key: 'current_liabilities' },
+                { label: 'Long-term Debt', key: 'long_term_debt' },
+                { label: 'Accounts Payable', key: 'accounts_payable' },
+                { label: 'Stockholders Equity', key: 'stockholders_equity' },
+                { label: 'Retained Earnings', key: 'retained_earnings' }
+            ];
+
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>${ticker1}</th>
+                        <th>${ticker2}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${metrics.map(metric => `
+                        <tr>
+                            <td>${metric.label}</td>
+                            <td>${formatFinancialValue(balance1[metric.key], metric.key)}</td>
+                            <td>${formatFinancialValue(balance2[metric.key], metric.key)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+        }
+
+        /**
+         * Displays cash flow comparison
+         */
+        function displayCashFlow(data1, data2, ticker1, ticker2) {
+            const table = document.getElementById('cashFlowTable');
+            const cash1 = data1.cash_flow;
+            const cash2 = data2.cash_flow;
+
+            const metrics = [
+                { label: 'Operating Cash Flow', key: 'operating_cash_flow' },
+                { label: 'Free Cash Flow', key: 'free_cash_flow' },
+                { label: 'Capital Expenditures', key: 'capital_expenditures' },
+                { label: 'Net Cash from Investing', key: 'net_cash_investing' },
+                { label: 'Net Cash from Financing', key: 'net_cash_financing' },
+                { label: 'Share Repurchases', key: 'share_repurchases' },
+                { label: 'Dividends Paid', key: 'dividends_paid' }
+            ];
+
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>${ticker1}</th>
+                        <th>${ticker2}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${metrics.map(metric => `
+                        <tr>
+                            <td>${metric.label}</td>
+                            <td>${formatFinancialValue(cash1[metric.key], metric.key)}</td>
+                            <td>${formatFinancialValue(cash2[metric.key], metric.key)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+        }
+
+        /**
+         * Formats financial values for display
+         */
+        function formatFinancialValue(value, key) {
+            if (value === null || value === undefined) {
+                return '<span style="color: var(--text-secondary);">N/A</span>';
+            }
+
+            // EPS values are already per-share
+            if (key.includes('earnings_per_share')) {
+                return `<span class="metric-value">$${value.toFixed(2)}</span>`;
+            }
+
+            // Large numbers (in the millions/billions)
+            if (Math.abs(value) >= 1000000000) {
+                const billions = value / 1000000000;
+                const colorClass = value < 0 ? 'metric-negative' : 'metric-positive';
+                return `<span class="metric-value ${colorClass}">$${billions.toFixed(2)}B</span>`;
+            } else if (Math.abs(value) >= 1000000) {
+                const millions = value / 1000000;
+                const colorClass = value < 0 ? 'metric-negative' : 'metric-positive';
+                return `<span class="metric-value ${colorClass}">$${millions.toFixed(2)}M</span>`;
+            }
+
+            const colorClass = value < 0 ? 'metric-negative' : '';
+            return `<span class="metric-value ${colorClass}">$${value.toLocaleString()}</span>`;
+        }
     </script>
 </body>
 </html>
