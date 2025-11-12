@@ -113,19 +113,32 @@ async function analyzeSentiment(text, apiKey) {
  * Extracts key executive statements from earnings transcript
  */
 function extractKeyStatements(transcript) {
-  if (!transcript || !transcript.transcript_split) {
+  if (!transcript) {
     return '';
   }
 
-  // Focus on CEO and CFO statements (most important for sentiment)
-  const keyRoles = ['Chief Executive Officer', 'Chief Financial Officer', 'Chairman'];
-  const keyStatements = transcript.transcript_split
-    .filter(item => keyRoles.some(role => item.role && item.role.includes(role)))
-    .slice(0, 3) // Get first 3 key executive statements
-    .map(item => item.text)
-    .join(' ');
+  // Check if transcript_split is an array before using it
+  if (Array.isArray(transcript.transcript_split) && transcript.transcript_split.length > 0) {
+    // Focus on CEO and CFO statements (most important for sentiment)
+    const keyRoles = ['Chief Executive Officer', 'Chief Financial Officer', 'Chairman'];
+    const keyStatements = transcript.transcript_split
+      .filter(item => item && item.role && keyRoles.some(role => item.role.includes(role)))
+      .slice(0, 3) // Get first 3 key executive statements
+      .map(item => item.text)
+      .filter(text => text) // Remove any null/undefined texts
+      .join(' ');
 
-  return keyStatements || transcript.transcript.substring(0, 2000);
+    if (keyStatements) {
+      return keyStatements;
+    }
+  }
+
+  // Fallback to full transcript text if available
+  if (transcript.transcript && typeof transcript.transcript === 'string') {
+    return transcript.transcript.substring(0, 2000);
+  }
+
+  return '';
 }
 
 /**
