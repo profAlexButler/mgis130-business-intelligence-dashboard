@@ -90,18 +90,23 @@ async function fetchEarningsTranscript(ticker, apiKey) {
  */
 async function analyzeSentiment(text, apiKey) {
   try {
+    console.log('analyzeSentiment called with text length:', text.length);
+
     // Sentiment API has text length limits - truncate if needed
     const maxLength = 2000;
     const textToAnalyze = text.length > maxLength ? text.substring(0, maxLength) : text;
 
     const encodedText = encodeURIComponent(textToAnalyze);
+    console.log('Calling sentiment API with encoded text length:', encodedText.length);
+
     const result = await fetchFromApiNinjas(`/v1/sentiment?text=${encodedText}`, apiKey);
 
     if (!result.success) {
-      console.log('Sentiment analysis API failed:', result.statusCode);
+      console.log('Sentiment analysis API failed:', result.statusCode, result.message);
       return null;
     }
 
+    console.log('Sentiment analysis result:', JSON.stringify(result.data));
     return result.data;
   } catch (error) {
     console.error('Error analyzing sentiment:', error);
@@ -377,10 +382,17 @@ module.exports = async function handler(req, res) {
     // Analyze earnings sentiment
     let sentimentData = null;
     if (earningsTranscript) {
+      console.log('Earnings transcript received, extracting key statements...');
       const keyStatements = extractKeyStatements(earningsTranscript);
+      console.log('Key statements extracted:', keyStatements ? `${keyStatements.length} characters` : 'empty/null');
       if (keyStatements) {
         sentimentData = await analyzeSentiment(keyStatements, apiKey);
+        console.log('Sentiment data result:', sentimentData ? 'received' : 'null');
+      } else {
+        console.log('No key statements extracted, skipping sentiment analysis');
       }
+    } else {
+      console.log('No earnings transcript available');
     }
 
     // Generate recommendation
