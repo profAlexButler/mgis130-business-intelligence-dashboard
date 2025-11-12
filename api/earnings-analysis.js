@@ -71,6 +71,7 @@ function fetchFromApiNinjas(endpoint, apiKey) {
  */
 async function fetchEarningsTranscript(ticker, apiKey) {
   try {
+    console.log(`Fetching earnings transcript for ${ticker}...`);
     const result = await fetchFromApiNinjas(`/v1/earningstranscript?ticker=${ticker}`, apiKey);
 
     if (!result.success) {
@@ -78,6 +79,7 @@ async function fetchEarningsTranscript(ticker, apiKey) {
       return null;
     }
 
+    console.log(`Earnings transcript received for ${ticker}, keys:`, Object.keys(result.data));
     return result.data;
   } catch (error) {
     console.error(`Error fetching earnings transcript for ${ticker}:`, error);
@@ -90,18 +92,23 @@ async function fetchEarningsTranscript(ticker, apiKey) {
  */
 async function analyzeSentiment(text, apiKey) {
   try {
+    console.log('analyzeSentiment called with text length:', text.length);
+
     // Sentiment API has text length limits - truncate if needed
     const maxLength = 2000;
     const textToAnalyze = text.length > maxLength ? text.substring(0, maxLength) : text;
 
     const encodedText = encodeURIComponent(textToAnalyze);
+    console.log('Calling sentiment API with encoded text length:', encodedText.length);
+
     const result = await fetchFromApiNinjas(`/v1/sentiment?text=${encodedText}`, apiKey);
 
     if (!result.success) {
-      console.log('Sentiment analysis API failed:', result.statusCode);
+      console.log('Sentiment analysis API failed:', result.statusCode, result.message);
       return null;
     }
 
+    console.log('Sentiment analysis result:', JSON.stringify(result.data));
     return result.data;
   } catch (error) {
     console.error('Error analyzing sentiment:', error);
@@ -114,11 +121,19 @@ async function analyzeSentiment(text, apiKey) {
  */
 function extractKeyStatements(transcript) {
   if (!transcript) {
+    console.log('No transcript provided');
     return '';
   }
 
+  console.log('Transcript keys:', Object.keys(transcript));
+  console.log('transcript_split type:', typeof transcript.transcript_split);
+  console.log('transcript_split is array?', Array.isArray(transcript.transcript_split));
+
   // Check if transcript_split is an array before using it
   if (Array.isArray(transcript.transcript_split) && transcript.transcript_split.length > 0) {
+    console.log('transcript_split length:', transcript.transcript_split.length);
+    console.log('First item sample:', JSON.stringify(transcript.transcript_split[0]).substring(0, 200));
+
     // Focus on CEO and CFO statements (most important for sentiment)
     const keyRoles = ['Chief Executive Officer', 'Chief Financial Officer', 'Chairman'];
     const keyStatements = transcript.transcript_split
@@ -128,6 +143,7 @@ function extractKeyStatements(transcript) {
       .filter(text => text) // Remove any null/undefined texts
       .join(' ');
 
+    console.log('Extracted key statements length:', keyStatements.length);
     if (keyStatements) {
       return keyStatements;
     }
@@ -135,9 +151,11 @@ function extractKeyStatements(transcript) {
 
   // Fallback to full transcript text if available
   if (transcript.transcript && typeof transcript.transcript === 'string') {
+    console.log('Using full transcript fallback, length:', transcript.transcript.length);
     return transcript.transcript.substring(0, 2000);
   }
 
+  console.log('No suitable transcript data found');
   return '';
 }
 
@@ -366,10 +384,17 @@ module.exports = async function handler(req, res) {
     // Analyze earnings sentiment
     let sentimentData = null;
     if (earningsTranscript) {
+      console.log('Earnings transcript received, extracting key statements...');
       const keyStatements = extractKeyStatements(earningsTranscript);
+      console.log('Key statements extracted:', keyStatements ? `${keyStatements.length} characters` : 'empty/null');
       if (keyStatements) {
         sentimentData = await analyzeSentiment(keyStatements, apiKey);
+        console.log('Sentiment data result:', sentimentData ? 'received' : 'null');
+      } else {
+        console.log('No key statements extracted, skipping sentiment analysis');
       }
+    } else {
+      console.log('No earnings transcript available');
     }
 
     // Generate recommendation
