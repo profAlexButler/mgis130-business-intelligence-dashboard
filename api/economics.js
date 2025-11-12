@@ -75,8 +75,8 @@ function fetchFromApiNinjas(endpoint, apiKey) {
  */
 async function fetchInflationData(apiKey) {
   try {
-    // Add country parameter for US data
-    const result = await fetchFromApiNinjas('/v1/inflation?country=united%20states', apiKey);
+    // Try without country parameter first, or with different format
+    const result = await fetchFromApiNinjas('/v1/inflation', apiKey);
 
     if (!result.success) {
       console.log('Inflation API failed:', result.statusCode, result.message);
@@ -114,8 +114,8 @@ async function fetchInflationData(apiKey) {
  */
 async function fetchInterestRateData(apiKey) {
   try {
-    // Add central bank parameter for Fed
-    const result = await fetchFromApiNinjas('/v1/interestrate?central_bank=federal_reserve', apiKey);
+    // No parameters needed - returns all central bank rates
+    const result = await fetchFromApiNinjas('/v1/interestrate', apiKey);
 
     if (!result.success) {
       console.log('Interest rate API failed:', result.statusCode, result.message);
@@ -125,23 +125,18 @@ async function fetchInterestRateData(apiKey) {
     const jsonData = result.data;
     console.log('Interest rate raw response:', JSON.stringify(jsonData));
 
-    // Handle different possible response formats
-    if (Array.isArray(jsonData) && jsonData.length > 0) {
-      const latest = jsonData[0];
-      const rateValue = latest.rate_pct || latest.rate || latest.value || latest.central_bank_rate;
+    // Response has central_bank_rates array
+    if (jsonData.central_bank_rates && Array.isArray(jsonData.central_bank_rates)) {
+      // Find American Central Bank (Federal Reserve)
+      const usRate = jsonData.central_bank_rates.find(
+        bank => bank.central_bank === 'American Central Bank' ||
+                bank.country === 'United_States'
+      );
 
-      if (rateValue !== undefined && rateValue !== null) {
+      if (usRate && usRate.rate_pct !== undefined) {
         return {
-          value: parseFloat(rateValue),
-          period: latest.last_updated || latest.period || latest.date || 'Current'
-        };
-      }
-    } else if (jsonData && typeof jsonData === 'object') {
-      const rateValue = jsonData.rate_pct || jsonData.rate || jsonData.value;
-      if (rateValue !== undefined && rateValue !== null) {
-        return {
-          value: parseFloat(rateValue),
-          period: jsonData.last_updated || jsonData.period || jsonData.date || 'Current'
+          value: parseFloat(usRate.rate_pct),
+          period: usRate.last_updated || 'Current'
         };
       }
     }
@@ -171,25 +166,16 @@ async function fetchMortgageRateData(apiKey) {
     const jsonData = result.data;
     console.log('Mortgage rate raw response:', JSON.stringify(jsonData));
 
-    // Handle different possible response formats
+    // Response is array with week and data
     if (Array.isArray(jsonData) && jsonData.length > 0) {
       const latest = jsonData[0];
-      const rateValue = latest.rate_30_year || latest.rate || latest.value;
 
-      if (rateValue !== undefined && rateValue !== null) {
+      // Data is nested in data.frm_30 (30-year fixed rate mortgage)
+      if (latest.data && latest.data.frm_30) {
         return {
-          value: parseFloat(rateValue),
-          period: latest.date || latest.period || latest.week || 'Current',
-          type: latest.type || '30-year fixed'
-        };
-      }
-    } else if (jsonData && typeof jsonData === 'object') {
-      const rateValue = jsonData.rate_30_year || jsonData.rate || jsonData.value;
-      if (rateValue !== undefined && rateValue !== null) {
-        return {
-          value: parseFloat(rateValue),
-          period: jsonData.date || jsonData.period || jsonData.week || 'Current',
-          type: jsonData.type || '30-year fixed'
+          value: parseFloat(latest.data.frm_30),
+          period: latest.data.week || 'Current',
+          type: '30-year fixed'
         };
       }
     }
@@ -219,23 +205,15 @@ async function fetchUnemploymentData(apiKey) {
     const jsonData = result.data;
     console.log('Unemployment raw response:', JSON.stringify(jsonData));
 
-    // Handle different possible response formats
+    // Returns array of historical data - get the LAST item (most recent)
     if (Array.isArray(jsonData) && jsonData.length > 0) {
-      const latest = jsonData[0];
-      const rateValue = latest.overall_unemployment_rate || latest.unemployment_rate || latest.rate || latest.value;
+      const latest = jsonData[jsonData.length - 1]; // Get last item
+      const rateValue = latest.unemployment_rate || latest.rate || latest.value;
 
       if (rateValue !== undefined && rateValue !== null) {
         return {
           value: parseFloat(rateValue),
-          period: latest.period || latest.date || latest.year_month || 'Current'
-        };
-      }
-    } else if (jsonData && typeof jsonData === 'object') {
-      const rateValue = jsonData.overall_unemployment_rate || jsonData.unemployment_rate || jsonData.rate || jsonData.value;
-      if (rateValue !== undefined && rateValue !== null) {
-        return {
-          value: parseFloat(rateValue),
-          period: jsonData.period || jsonData.date || jsonData.year_month || 'Current'
+          period: latest.year ? String(latest.year) : 'Current'
         };
       }
     }
