@@ -94,12 +94,28 @@ async function analyzeSentiment(text, apiKey) {
   try {
     console.log('analyzeSentiment called with text length:', text.length);
 
-    // Sentiment API has text length limits - truncate if needed
-    const maxLength = 2000;
+    // Sentiment API has text length limits and URL length constraints
+    // Keep it under 1000 chars to ensure encoded URL stays within limits
+    const maxLength = 1000;
     const textToAnalyze = text.length > maxLength ? text.substring(0, maxLength) : text;
 
     const encodedText = encodeURIComponent(textToAnalyze);
     console.log('Calling sentiment API with encoded text length:', encodedText.length);
+
+    // URL length safety check
+    if (encodedText.length > 1500) {
+      console.log('Encoded text too long, truncating further...');
+      const shorterText = text.substring(0, 500);
+      const result = await fetchFromApiNinjas(`/v1/sentiment?text=${encodeURIComponent(shorterText)}`, apiKey);
+
+      if (!result.success) {
+        console.log('Sentiment analysis API failed:', result.statusCode, result.message);
+        return null;
+      }
+
+      console.log('Sentiment analysis result:', JSON.stringify(result.data));
+      return result.data;
+    }
 
     const result = await fetchFromApiNinjas(`/v1/sentiment?text=${encodedText}`, apiKey);
 
@@ -127,16 +143,28 @@ function extractKeyStatements(transcript) {
 
   console.log('Transcript keys:', Object.keys(transcript));
   console.log('transcript_split type:', typeof transcript.transcript_split);
-  console.log('transcript_split is array?', Array.isArray(transcript.transcript_split));
+
+  // Parse transcript_split if it's a JSON string
+  let transcriptSplit = transcript.transcript_split;
+  if (typeof transcriptSplit === 'string') {
+    try {
+      console.log('Parsing transcript_split JSON string...');
+      transcriptSplit = JSON.parse(transcriptSplit);
+      console.log('Successfully parsed, array length:', transcriptSplit.length);
+    } catch (error) {
+      console.error('Failed to parse transcript_split:', error.message);
+      transcriptSplit = null;
+    }
+  }
 
   // Check if transcript_split is an array before using it
-  if (Array.isArray(transcript.transcript_split) && transcript.transcript_split.length > 0) {
-    console.log('transcript_split length:', transcript.transcript_split.length);
-    console.log('First item sample:', JSON.stringify(transcript.transcript_split[0]).substring(0, 200));
+  if (Array.isArray(transcriptSplit) && transcriptSplit.length > 0) {
+    console.log('transcript_split length:', transcriptSplit.length);
+    console.log('First item sample:', JSON.stringify(transcriptSplit[0]).substring(0, 200));
 
     // Focus on CEO and CFO statements (most important for sentiment)
     const keyRoles = ['Chief Executive Officer', 'Chief Financial Officer', 'Chairman'];
-    const keyStatements = transcript.transcript_split
+    const keyStatements = transcriptSplit
       .filter(item => item && item.role && keyRoles.some(role => item.role.includes(role)))
       .slice(0, 3) // Get first 3 key executive statements
       .map(item => item.text)
@@ -152,7 +180,7 @@ function extractKeyStatements(transcript) {
   // Fallback to full transcript text if available
   if (transcript.transcript && typeof transcript.transcript === 'string') {
     console.log('Using full transcript fallback, length:', transcript.transcript.length);
-    return transcript.transcript.substring(0, 2000);
+    return transcript.transcript.substring(0, 1000); // Reduced from 2000 to avoid URL length issues
   }
 
   console.log('No suitable transcript data found');
