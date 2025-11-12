@@ -1046,6 +1046,40 @@
             font-size: 1.1rem;
         }
 
+        /* Comparison Badges */
+        .comparison-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .comparison-badge.better {
+            background: rgba(39, 174, 96, 0.2);
+            color: var(--success-green-light);
+            border: 1px solid var(--success-green-light);
+        }
+
+        .comparison-badge.worse {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--danger-red);
+            border: 1px solid var(--danger-red);
+        }
+
+        .metric-better {
+            color: var(--success-green-light) !important;
+            font-weight: 700;
+        }
+
+        .metric-worse {
+            color: var(--text-secondary) !important;
+            opacity: 0.7;
+        }
+
         /* Accessibility: Focus states */
         .btn:focus,
         button:focus,
@@ -2340,8 +2374,8 @@
                     ${metrics.map(metric => `
                         <tr>
                             <td>${metric.label}</td>
-                            <td>${formatFinancialValue(income1[metric.key], metric.key)}</td>
-                            <td>${formatFinancialValue(income2[metric.key], metric.key)}</td>
+                            <td>${formatFinancialValue(income1[metric.key], metric.key, income2[metric.key], true)}</td>
+                            <td>${formatFinancialValue(income2[metric.key], metric.key, income1[metric.key], true)}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -2384,8 +2418,8 @@
                     ${metrics.map(metric => `
                         <tr>
                             <td>${metric.label}</td>
-                            <td>${formatFinancialValue(balance1[metric.key], metric.key)}</td>
-                            <td>${formatFinancialValue(balance2[metric.key], metric.key)}</td>
+                            <td>${formatFinancialValue(balance1[metric.key], metric.key, balance2[metric.key], true)}</td>
+                            <td>${formatFinancialValue(balance2[metric.key], metric.key, balance1[metric.key], true)}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -2422,8 +2456,8 @@
                     ${metrics.map(metric => `
                         <tr>
                             <td>${metric.label}</td>
-                            <td>${formatFinancialValue(cash1[metric.key], metric.key)}</td>
-                            <td>${formatFinancialValue(cash2[metric.key], metric.key)}</td>
+                            <td>${formatFinancialValue(cash1[metric.key], metric.key, cash2[metric.key], true)}</td>
+                            <td>${formatFinancialValue(cash2[metric.key], metric.key, cash1[metric.key], true)}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -2431,31 +2465,75 @@
         }
 
         /**
-         * Formats financial values for display
+         * Determines if higher value is better for a given metric
          */
-        function formatFinancialValue(value, key) {
+        function isHigherBetter(key) {
+            // Lower is better for costs, expenses, liabilities, debt
+            const lowerIsBetter = [
+                'cost_of_revenue',
+                'research_and_development',
+                'sales_and_marketing',
+                'general_and_administrative',
+                'tax_provision',
+                'interest_expense',
+                'total_liabilities',
+                'current_liabilities',
+                'long_term_debt',
+                'total_debt',
+                'accounts_payable',
+                'capital_expenditures',
+                'share_repurchases'
+            ];
+
+            return !lowerIsBetter.includes(key);
+        }
+
+        /**
+         * Formats financial values for display with comparison indicator
+         */
+        function formatFinancialValue(value, key, compareValue = null, showIndicator = false) {
             if (value === null || value === undefined) {
                 return '<span style="color: var(--text-secondary);">N/A</span>';
             }
 
+            let formattedValue = '';
+            let colorClass = '';
+
             // EPS values are already per-share
             if (key.includes('earnings_per_share')) {
-                return `<span class="metric-value">$${value.toFixed(2)}</span>`;
+                formattedValue = `$${value.toFixed(2)}`;
             }
-
             // Large numbers (in the millions/billions)
-            if (Math.abs(value) >= 1000000000) {
+            else if (Math.abs(value) >= 1000000000) {
                 const billions = value / 1000000000;
-                const colorClass = value < 0 ? 'metric-negative' : 'metric-positive';
-                return `<span class="metric-value ${colorClass}">$${billions.toFixed(2)}B</span>`;
+                formattedValue = `$${billions.toFixed(2)}B`;
+                colorClass = value < 0 ? 'metric-negative' : 'metric-positive';
             } else if (Math.abs(value) >= 1000000) {
                 const millions = value / 1000000;
-                const colorClass = value < 0 ? 'metric-negative' : 'metric-positive';
-                return `<span class="metric-value ${colorClass}">$${millions.toFixed(2)}M</span>`;
+                formattedValue = `$${millions.toFixed(2)}M`;
+                colorClass = value < 0 ? 'metric-negative' : 'metric-positive';
+            } else {
+                formattedValue = `$${value.toLocaleString()}`;
+                colorClass = value < 0 ? 'metric-negative' : '';
             }
 
-            const colorClass = value < 0 ? 'metric-negative' : '';
-            return `<span class="metric-value ${colorClass}">$${value.toLocaleString()}</span>`;
+            // Add comparison indicator if comparing values
+            let indicator = '';
+            if (showIndicator && compareValue !== null && compareValue !== undefined) {
+                const higherIsBetter = isHigherBetter(key);
+                const isBetter = higherIsBetter ? (value > compareValue) : (value < compareValue);
+                const isWorse = higherIsBetter ? (value < compareValue) : (value > compareValue);
+
+                if (isBetter && value !== compareValue) {
+                    indicator = ' <span class="comparison-badge better">✓ Better</span>';
+                    colorClass = 'metric-better';
+                } else if (isWorse && value !== compareValue) {
+                    indicator = ' <span class="comparison-badge worse">↓ Worse</span>';
+                    colorClass = 'metric-worse';
+                }
+            }
+
+            return `<span class="metric-value ${colorClass}">${formattedValue}</span>${indicator}`;
         }
     </script>
 </body>
