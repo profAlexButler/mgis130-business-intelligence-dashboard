@@ -2,11 +2,7 @@
  * Serverless API Function: Economic Indicators Fetcher
  *
  * Fetches key US economic indicators from API Ninjas.
- * Available indicators: Inflation Rate
- *
- * Note: API Ninjas has limited economic data. For production use,
- * consider integrating with FRED API (Federal Reserve Economic Data)
- * or other economic data providers.
+ * Attempts to fetch multiple indicators and handles unavailable endpoints gracefully.
  *
  * Environment Variables Required:
  * - API_KEY: API Ninjas authentication key
@@ -19,15 +15,16 @@ const cache = new Map();
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 /**
- * Fetches inflation data from API Ninjas
+ * Generic function to fetch data from API Ninjas
+ * @param {string} endpoint - API endpoint path
  * @param {string} apiKey - API Ninjas API key
- * @returns {Promise<Object>} Inflation data
+ * @returns {Promise<Object>} API response data
  */
-function fetchInflationData(apiKey) {
+function fetchFromApiNinjas(endpoint, apiKey) {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'api.api-ninjas.com',
-      path: '/v1/inflation',
+      path: endpoint,
       method: 'GET',
       headers: {
         'X-Api-Key': apiKey
@@ -45,34 +42,171 @@ function fetchInflationData(apiKey) {
         if (res.statusCode === 200) {
           try {
             const jsonData = JSON.parse(data);
-
-            // API Ninjas returns an array of inflation data
-            // Get the most recent entry (usually first in array)
-            if (Array.isArray(jsonData) && jsonData.length > 0) {
-              const latest = jsonData[0];
-              resolve({
-                type: latest.type || 'CPI',
-                period: latest.period || 'Unknown',
-                rate: parseFloat(latest.rate) || 0
-              });
-            } else {
-              reject(new Error('No inflation data available'));
-            }
+            resolve({ success: true, data: jsonData, statusCode: res.statusCode });
           } catch (error) {
-            reject(new Error(`Failed to parse inflation data: ${error.message}`));
+            reject(new Error(`Failed to parse JSON from ${endpoint}: ${error.message}`));
           }
+        } else if (res.statusCode === 404) {
+          // Endpoint doesn't exist
+          resolve({ success: false, statusCode: 404, message: 'Endpoint not available' });
         } else {
-          reject(new Error(`API Ninjas inflation endpoint error: ${res.statusCode}`));
+          resolve({ success: false, statusCode: res.statusCode, message: `API error: ${res.statusCode}` });
         }
       });
     });
 
     req.on('error', (error) => {
-      reject(new Error(`Network error fetching inflation: ${error.message}`));
+      reject(new Error(`Network error fetching ${endpoint}: ${error.message}`));
+    });
+
+    req.setTimeout(5000, () => {
+      req.destroy();
+      reject(new Error(`Timeout fetching ${endpoint}`));
     });
 
     req.end();
   });
+}
+
+/**
+ * Fetches inflation data from API Ninjas
+ * @param {string} apiKey - API Ninjas API key
+ * @returns {Promise<Object>} Inflation data or null
+ */
+async function fetchInflationData(apiKey) {
+  try {
+    const result = await fetchFromApiNinjas('/v1/inflation', apiKey);
+
+    if (!result.success) {
+      return null;
+    }
+
+    // API Ninjas returns an array of inflation data
+    const jsonData = result.data;
+    if (Array.isArray(jsonData) && jsonData.length > 0) {
+      const latest = jsonData[0];
+      return {
+        value: parseFloat(latest.rate) || 0,
+        period: latest.period || 'Unknown',
+        type: latest.type || 'CPI'
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching inflation:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetches interest rate data from API Ninjas
+ * @param {string} apiKey - API Ninjas API key
+ * @returns {Promise<Object>} Interest rate data or null
+ */
+async function fetchInterestRateData(apiKey) {
+  try {
+    // Try the interestrate endpoint
+    const result = await fetchFromApiNinjas('/v1/interestrate', apiKey);
+
+    if (!result.success) {
+      return null;
+    }
+
+    const jsonData = result.data;
+
+    // Handle different possible response formats
+    if (Array.isArray(jsonData) && jsonData.length > 0) {
+      const latest = jsonData[0];
+      return {
+        value: parseFloat(latest.rate || latest.value || latest.central_bank_rate) || 0,
+        period: latest.period || latest.date || 'Current'
+      };
+    } else if (jsonData.rate !== undefined || jsonData.value !== undefined) {
+      return {
+        value: parseFloat(jsonData.rate || jsonData.value) || 0,
+        period: jsonData.period || jsonData.date || 'Current'
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching interest rate:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetches GDP data from API Ninjas
+ * @param {string} apiKey - API Ninjas API key
+ * @returns {Promise<Object>} GDP data or null
+ */
+async function fetchGDPData(apiKey) {
+  try {
+    // Try the gdp endpoint
+    const result = await fetchFromApiNinjas('/v1/gdp', apiKey);
+
+    if (!result.success) {
+      return null;
+    }
+
+    const jsonData = result.data;
+
+    // Handle different possible response formats
+    if (Array.isArray(jsonData) && jsonData.length > 0) {
+      const latest = jsonData[0];
+      return {
+        value: parseFloat(latest.growth_rate || latest.rate || latest.value) || 0,
+        period: latest.period || latest.year || 'Recent'
+      };
+    } else if (jsonData.growth_rate !== undefined || jsonData.value !== undefined) {
+      return {
+        value: parseFloat(jsonData.growth_rate || jsonData.value) || 0,
+        period: jsonData.period || jsonData.year || 'Recent'
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching GDP:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetches unemployment data from API Ninjas
+ * @param {string} apiKey - API Ninjas API key
+ * @returns {Promise<Object>} Unemployment data or null
+ */
+async function fetchUnemploymentData(apiKey) {
+  try {
+    // Try the unemployment endpoint
+    const result = await fetchFromApiNinjas('/v1/unemployment', apiKey);
+
+    if (!result.success) {
+      return null;
+    }
+
+    const jsonData = result.data;
+
+    // Handle different possible response formats
+    if (Array.isArray(jsonData) && jsonData.length > 0) {
+      const latest = jsonData[0];
+      return {
+        value: parseFloat(latest.rate || latest.value || latest.unemployment_rate) || 0,
+        period: latest.period || latest.date || 'Current'
+      };
+    } else if (jsonData.rate !== undefined || jsonData.value !== undefined) {
+      return {
+        value: parseFloat(jsonData.rate || jsonData.value) || 0,
+        period: jsonData.period || jsonData.date || 'Current'
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching unemployment:', error);
+    return null;
+  }
 }
 
 /**
@@ -82,6 +216,33 @@ function getInflationStatus(rate) {
   if (rate < 2) return { level: 'good', color: 'green', label: 'Low' };
   if (rate < 4) return { level: 'moderate', color: 'yellow', label: 'Moderate' };
   return { level: 'concerning', color: 'red', label: 'High' };
+}
+
+/**
+ * Get status level for unemployment rate
+ */
+function getUnemploymentStatus(rate) {
+  if (rate < 4) return { level: 'good', color: 'green', label: 'Low' };
+  if (rate < 6) return { level: 'moderate', color: 'yellow', label: 'Moderate' };
+  return { level: 'concerning', color: 'red', label: 'High' };
+}
+
+/**
+ * Get status level for interest rate
+ */
+function getInterestRateStatus(rate) {
+  if (rate < 2) return { level: 'info', color: 'green', label: 'Low' };
+  if (rate < 4) return { level: 'info', color: 'yellow', label: 'Moderate' };
+  return { level: 'info', color: 'red', label: 'High' };
+}
+
+/**
+ * Get status level for GDP growth rate
+ */
+function getGDPStatus(rate) {
+  if (rate < 0) return { level: 'concerning', color: 'red', label: 'Negative' };
+  if (rate < 2) return { level: 'moderate', color: 'yellow', label: 'Slow' };
+  return { level: 'good', color: 'green', label: 'Healthy' };
 }
 
 /**
@@ -129,52 +290,118 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Fetch inflation data
-    const inflationData = await fetchInflationData(apiKey);
-    const inflationStatus = getInflationStatus(inflationData.rate);
+    // Fetch all economic indicators in parallel
+    const [inflationData, interestRateData, gdpData, unemploymentData] = await Promise.all([
+      fetchInflationData(apiKey),
+      fetchInterestRateData(apiKey),
+      fetchGDPData(apiKey),
+      fetchUnemploymentData(apiKey)
+    ]);
 
-    const indicators = {
-      inflation: {
+    // Build indicators object with available data
+    const indicators = {};
+    const availableSources = [];
+
+    // Inflation
+    if (inflationData) {
+      indicators.inflation = {
         name: 'Inflation Rate',
-        value: inflationData.rate,
+        value: inflationData.value,
         unit: '%',
         period: inflationData.period,
-        status: inflationStatus,
+        status: getInflationStatus(inflationData.value),
         available: true
-      },
-      // Note: These would require additional API integrations
-      // Including them as unavailable with informational messages
-      gdp: {
+      };
+      availableSources.push('Inflation');
+    } else {
+      indicators.inflation = {
+        name: 'Inflation Rate',
+        value: null,
+        unit: '%',
+        status: { level: 'info', color: 'blue', label: 'N/A' },
+        available: false,
+        note: 'Data temporarily unavailable'
+      };
+    }
+
+    // GDP
+    if (gdpData) {
+      indicators.gdp = {
+        name: 'GDP Growth Rate',
+        value: gdpData.value,
+        unit: '%',
+        period: gdpData.period,
+        status: getGDPStatus(gdpData.value),
+        available: true
+      };
+      availableSources.push('GDP');
+    } else {
+      indicators.gdp = {
         name: 'GDP Growth Rate',
         value: null,
         unit: '%',
         status: { level: 'info', color: 'blue', label: 'N/A' },
         available: false,
-        note: 'Requires FRED API or BEA integration'
-      },
-      unemployment: {
+        note: 'Not available via API Ninjas - consider FRED API integration'
+      };
+    }
+
+    // Unemployment
+    if (unemploymentData) {
+      indicators.unemployment = {
+        name: 'Unemployment Rate',
+        value: unemploymentData.value,
+        unit: '%',
+        period: unemploymentData.period,
+        status: getUnemploymentStatus(unemploymentData.value),
+        available: true
+      };
+      availableSources.push('Unemployment');
+    } else {
+      indicators.unemployment = {
         name: 'Unemployment Rate',
         value: null,
         unit: '%',
         status: { level: 'info', color: 'blue', label: 'N/A' },
         available: false,
-        note: 'Requires BLS API integration'
-      },
-      interestRate: {
+        note: 'Not available via API Ninjas - consider BLS API integration'
+      };
+    }
+
+    // Interest Rate
+    if (interestRateData) {
+      indicators.interestRate = {
+        name: 'Fed Interest Rate',
+        value: interestRateData.value,
+        unit: '%',
+        period: interestRateData.period,
+        status: getInterestRateStatus(interestRateData.value),
+        available: true
+      };
+      availableSources.push('Interest Rate');
+    } else {
+      indicators.interestRate = {
         name: 'Fed Interest Rate',
         value: null,
         unit: '%',
         status: { level: 'info', color: 'blue', label: 'N/A' },
         available: false,
-        note: 'Requires FRED API integration'
-      }
-    };
+        note: 'Not available via API Ninjas - consider FRED API integration'
+      };
+    }
+
+    // Build source string
+    const sourceString = availableSources.length > 0
+      ? `API Ninjas (${availableSources.join(', ')})`
+      : 'API Ninjas (checking available endpoints)';
 
     // Store in cache
     const responseData = {
       indicators,
       lastUpdated: new Date().toISOString(),
-      source: 'API Ninjas (Inflation), Others require additional integrations'
+      source: sourceString,
+      availableCount: availableSources.length,
+      totalIndicators: 4
     };
 
     cache.set(cacheKey, {
@@ -195,7 +422,7 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({
       error: 'Internal server error',
       message: error.message,
-      note: 'Some economic indicators may require additional API integrations'
+      note: 'Error fetching economic data from API Ninjas'
     });
   }
 };
