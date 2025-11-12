@@ -56,19 +56,72 @@ function fetchFromApiNinjas(path, apiKey) {
 }
 
 /**
+ * Calculates the most recent completed fiscal quarter
+ * Companies typically file earnings 45 days after quarter end
+ */
+function getMostRecentQuarter() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-11
+
+  // Estimate most recent filed quarter based on current month
+  // Accounting for ~45 day filing delay
+  let quarter, year;
+
+  if (currentMonth >= 10) {
+    // November-December: Q3 should be filed
+    quarter = 3;
+    year = currentYear;
+  } else if (currentMonth >= 7) {
+    // August-October: Q2 should be filed
+    quarter = 2;
+    year = currentYear;
+  } else if (currentMonth >= 4) {
+    // May-July: Q1 should be filed
+    quarter = 1;
+    year = currentYear;
+  } else {
+    // January-April: Q4 of previous year should be filed
+    quarter = 4;
+    year = currentYear - 1;
+  }
+
+  return { quarter, year };
+}
+
+/**
  * Fetches earnings data for a ticker
  */
 async function fetchEarningsData(ticker, apiKey) {
   try {
-    console.log(`Fetching earnings data for ${ticker}...`);
-    const result = await fetchFromApiNinjas(`/v1/earnings?ticker=${ticker}`, apiKey);
+    const { quarter, year } = getMostRecentQuarter();
+    console.log(`Fetching earnings data for ${ticker} - Q${quarter} ${year}...`);
+
+    // Request the most recent quarter
+    const result = await fetchFromApiNinjas(`/v1/earnings?ticker=${ticker}&year=${year}&quarter=${quarter}`, apiKey);
 
     if (!result.success) {
-      console.log(`Earnings API failed for ${ticker}:`, result.statusCode);
-      return null;
+      console.log(`Earnings API failed for ${ticker} Q${quarter} ${year}:`, result.statusCode);
+
+      // Try previous quarter as fallback
+      const prevQuarter = quarter === 1 ? 4 : quarter - 1;
+      const prevYear = quarter === 1 ? year - 1 : year;
+      console.log(`Trying previous quarter: Q${prevQuarter} ${prevYear}...`);
+
+      const fallbackResult = await fetchFromApiNinjas(`/v1/earnings?ticker=${ticker}&year=${prevYear}&quarter=${prevQuarter}`, apiKey);
+
+      if (!fallbackResult.success) {
+        console.log(`Fallback also failed for ${ticker}`);
+        return null;
+      }
+
+      console.log(`Earnings data received for ${ticker} (fallback to Q${prevQuarter} ${prevYear})`);
+      return fallbackResult.data;
     }
 
-    console.log(`Earnings data received for ${ticker}`);
+    console.log(`Earnings data received for ${ticker} - Q${quarter} ${year}`);
+    console.log(`Filing date: ${result.data.filing_info?.filing_date}, Period end: ${result.data.filing_info?.period_end_date}`);
+
     return result.data;
   } catch (error) {
     console.error(`Error fetching earnings for ${ticker}:`, error);
