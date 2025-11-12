@@ -69,6 +69,16 @@ async function fetchEarningsData(ticker, apiKey) {
     }
 
     console.log(`Earnings data received for ${ticker}`);
+    console.log(`Data structure:`, JSON.stringify(result.data, null, 2).substring(0, 500));
+
+    // Log specific fields to debug
+    if (result.data.company_info) {
+      console.log(`Company info - Year: ${result.data.company_info.fiscal_year}, Quarter: ${result.data.company_info.fiscal_quarter}`);
+    }
+    if (result.data.filing_info) {
+      console.log(`Filing info - Date: ${result.data.filing_info.filing_date}, Period End: ${result.data.filing_info.period_end_date}`);
+    }
+
     return result.data;
   } catch (error) {
     console.error(`Error fetching earnings for ${ticker}:`, error);
