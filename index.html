@@ -18,6 +18,9 @@
 
     <title>Competitive Intelligence Dashboard | Technology Sector Stock Analysis</title>
 
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         /* CSS Reset and Base Styles */
         * {
@@ -33,10 +36,13 @@
             --card-bg: #1e2540;
             --text-primary: #ffffff;
             --text-secondary: #b8c1ec;
-            --accent-blue: #4a90e2;
-            --accent-blue-hover: #357abd;
+            --accent-blue: #3498DB;
+            --accent-blue-hover: #2980b9;
+            --accent-orange: #E67E22;
+            --accent-orange-hover: #d35400;
             --border-color: #2d3451;
-            --success-green: #2ecc71;
+            --success-green: #2C5F2D;
+            --success-green-light: #27ae60;
             --danger-red: #e74c3c;
             --warning-yellow: #f39c12;
             --shadow-color: rgba(0, 0, 0, 0.3);
@@ -53,7 +59,7 @@
 
         /* Container and Layout */
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             animation: fadeIn 0.6s ease-in;
         }
@@ -62,7 +68,7 @@
         .header {
             text-align: center;
             padding: 30px 20px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: 0 4px 20px var(--shadow-color);
@@ -85,12 +91,140 @@
             font-weight: 400;
         }
 
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            gap: 0;
+            margin-bottom: 30px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            background: rgba(230, 126, 34, 0.1);
+            color: var(--text-primary);
+        }
+
+        .tab-button.active {
+            background: var(--accent-orange);
+            color: white;
+            box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Economic Indicators Panel */
+        .economic-indicators {
+            background: linear-gradient(135deg, var(--card-bg) 0%, #252b4a 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .economic-indicators h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .indicator-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease;
+        }
+
+        .indicator-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .indicator-name {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .indicator-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+        }
+
+        .indicator-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .indicator-badge.green {
+            background: rgba(44, 95, 45, 0.3);
+            color: var(--success-green-light);
+            border: 1px solid var(--success-green);
+        }
+
+        .indicator-badge.yellow {
+            background: rgba(243, 156, 18, 0.3);
+            color: var(--warning-yellow);
+            border: 1px solid var(--warning-yellow);
+        }
+
+        .indicator-badge.red {
+            background: rgba(231, 76, 60, 0.3);
+            color: var(--danger-red);
+            border: 1px solid var(--danger-red);
+        }
+
+        .indicator-badge.blue {
+            background: rgba(52, 152, 219, 0.3);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+        }
+
         /* Action Bar */
         .action-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             gap: 15px;
             flex-wrap: wrap;
         }
@@ -136,7 +270,18 @@
         .btn-primary:hover:not(:disabled) {
             background: var(--accent-blue-hover);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-orange {
+            background: var(--accent-orange);
+            color: white;
+        }
+
+        .btn-orange:hover:not(:disabled) {
+            background: var(--accent-orange-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
         }
 
         .btn-secondary {
@@ -147,7 +292,7 @@
 
         .btn-secondary:hover:not(:disabled) {
             background: var(--card-bg);
-            border-color: var(--accent-blue);
+            border-color: var(--accent-orange);
         }
 
         .btn:disabled {
@@ -189,6 +334,7 @@
         tbody tr {
             border-bottom: 1px solid var(--border-color);
             transition: background 0.2s ease;
+            cursor: pointer;
         }
 
         tbody tr:hover {
@@ -212,26 +358,146 @@
         }
 
         .price.highest {
-            color: var(--success-green);
+            color: var(--success-green-light);
         }
 
         .price.lowest {
             color: var(--danger-red);
         }
 
-        /* Change Indicator */
-        .change-indicator {
+        /* Trend Indicator */
+        .trend-indicator {
             display: inline-flex;
             align-items: center;
-            padding: 6px 12px;
+            padding: 4px 10px;
             border-radius: 6px;
             font-weight: 600;
             font-size: 0.9rem;
         }
 
-        .change-indicator.neutral {
+        .trend-indicator.up {
+            background: rgba(44, 95, 45, 0.2);
+            color: var(--success-green-light);
+        }
+
+        .trend-indicator.down {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--danger-red);
+        }
+
+        .trend-indicator.neutral {
             background: rgba(255, 255, 255, 0.1);
             color: var(--text-secondary);
+        }
+
+        /* Expandable Card */
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+
+        .expandable-content.expanded {
+            max-height: 600px;
+        }
+
+        .chart-container {
+            background: var(--secondary-bg);
+            padding: 30px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .chart-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Comparison Tab */
+        .comparison-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .stock-selection {
+            margin-bottom: 30px;
+        }
+
+        .stock-selection h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .stock-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: var(--secondary-bg);
+            border-radius: 6px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--accent-orange);
+            background: var(--card-bg);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .comparison-chart-container {
+            background: var(--secondary-bg);
+            padding: 30px;
+            border-radius: 8px;
+            min-height: 400px;
+            display: none;
+        }
+
+        .comparison-chart-container.visible {
+            display: block;
         }
 
         /* Loading State */
@@ -250,7 +516,7 @@
             width: 50px;
             height: 50px;
             border: 4px solid var(--border-color);
-            border-top: 4px solid var(--accent-blue);
+            border-top: 4px solid var(--accent-orange);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -319,6 +585,11 @@
                 font-size: 1rem;
             }
 
+            .tab-button {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
             .action-bar {
                 flex-direction: column;
                 align-items: stretch;
@@ -345,12 +616,21 @@
             .price {
                 font-size: 1rem;
             }
+
+            .indicators-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .indicator-value {
+                font-size: 1.5rem;
+            }
         }
 
         /* Accessibility: Focus states */
         .btn:focus,
-        button:focus {
-            outline: 3px solid var(--accent-blue);
+        button:focus,
+        .tab-button:focus {
+            outline: 3px solid var(--accent-orange);
             outline-offset: 2px;
         }
 
@@ -361,7 +641,8 @@
                 color: black;
             }
 
-            .button-group {
+            .button-group,
+            .tab-navigation {
                 display: none;
             }
 
@@ -380,50 +661,111 @@
             <p class="subtitle">Technology Sector Stock Analysis</p>
         </header>
 
-        <!-- Action Bar -->
-        <div class="action-bar">
-            <div class="timestamp" id="timestamp">
-                Last updated: Never
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="switchTab('dashboard')">
+                📊 Dashboard
+            </button>
+            <button class="tab-button" onclick="switchTab('compare')">
+                📈 Compare Stocks
+            </button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+            <!-- Economic Indicators Panel -->
+            <div class="economic-indicators">
+                <h2>📉 Economic Indicators</h2>
+                <div id="economicIndicatorsContent">
+                    <div class="loading-state active">
+                        <div class="spinner"></div>
+                        <p>Loading economic data...</p>
+                    </div>
+                </div>
             </div>
-            <div class="button-group">
-                <button class="btn btn-primary" id="refreshBtn" onclick="fetchStockData()">
-                    🔄 Refresh Data
-                </button>
-                <button class="btn btn-secondary" id="exportBtn" onclick="exportToCSV()">
-                    📥 Export to CSV
-                </button>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <div class="timestamp" id="timestamp">
+                    Last updated: Never
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" id="refreshBtn" onclick="fetchStockData()">
+                        🔄 Refresh Data
+                    </button>
+                    <button class="btn btn-secondary" id="exportBtn" onclick="exportToCSV()">
+                        📥 Export to CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Data Container -->
+            <div class="table-container">
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState">
+                    <div class="spinner"></div>
+                    <p>Fetching latest data...</p>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state" id="errorState">
+                    <h3>⚠️ Unable to Load Data</h3>
+                    <p>We couldn't retrieve stock data at this time. Please try again.</p>
+                    <button class="btn btn-primary" onclick="fetchStockData()">Try Again</button>
+                </div>
+
+                <!-- Data Table -->
+                <table id="stockTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Ticker</th>
+                            <th>Current Price</th>
+                            <th>30-Day Trend</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Data Container -->
-        <div class="table-container">
-            <!-- Loading State -->
-            <div class="loading-state" id="loadingState">
-                <div class="spinner"></div>
-                <p>Fetching latest data...</p>
-            </div>
+        <!-- Compare Stocks Tab -->
+        <div id="compare-tab" class="tab-content">
+            <div class="comparison-section">
+                <div class="stock-selection">
+                    <h3>Select Stocks to Compare (Maximum 5)</h3>
+                    <div class="stock-checkboxes" id="stockCheckboxes">
+                        <!-- Checkboxes will be populated here -->
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-orange" onclick="generateComparison()" id="generateComparisonBtn">
+                            📊 Generate Comparison
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearSelection()">
+                            ✖️ Clear Selection
+                        </button>
+                    </div>
+                </div>
 
-            <!-- Error State -->
-            <div class="error-state" id="errorState">
-                <h3>⚠️ Unable to Load Data</h3>
-                <p>We couldn't retrieve stock data at this time. Please try again.</p>
-                <button class="btn btn-primary" onclick="fetchStockData()">Try Again</button>
-            </div>
+                <!-- Comparison Chart -->
+                <div class="comparison-chart-container" id="comparisonChartContainer">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
 
-            <!-- Data Table -->
-            <table id="stockTable" style="display: none;">
-                <thead>
-                    <tr>
-                        <th>Company</th>
-                        <th>Ticker</th>
-                        <th>Current Price</th>
-                        <th>Change Indicator</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Data will be populated here -->
-                </tbody>
-            </table>
+                <!-- Loading/Error States for Comparison -->
+                <div class="loading-state" id="comparisonLoadingState">
+                    <div class="spinner"></div>
+                    <p>Generating comparison chart...</p>
+                </div>
+
+                <div class="error-state" id="comparisonErrorState">
+                    <h3>⚠️ Unable to Generate Comparison</h3>
+                    <p>Please try selecting different stocks or refresh the page.</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -433,17 +775,102 @@
          */
         let stockData = [];
         let lastUpdateTime = null;
+        let expandedRow = null;
+        let chartInstances = {};
+        let comparisonChartInstance = null;
+
+        /**
+         * Company information
+         */
+        const COMPANIES = [
+            { ticker: 'AAPL', name: 'Apple Inc.' },
+            { ticker: 'MSFT', name: 'Microsoft Corporation' },
+            { ticker: 'GOOGL', name: 'Alphabet Inc. (Google)' },
+            { ticker: 'META', name: 'Meta Platforms Inc.' },
+            { ticker: 'AMZN', name: 'Amazon.com Inc.' }
+        ];
 
         /**
          * Initializes the dashboard on page load
          */
         window.addEventListener('DOMContentLoaded', () => {
             fetchStockData();
+            fetchEconomicIndicators();
+            initializeComparisonTab();
         });
 
         /**
+         * Tab switching functionality
+         */
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        /**
+         * Fetches economic indicators from API
+         */
+        async function fetchEconomicIndicators() {
+            const container = document.getElementById('economicIndicatorsContent');
+
+            try {
+                const response = await fetch('/api/economics');
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error('Failed to fetch economic data');
+                }
+
+                const indicators = result.data.indicators;
+
+                // Build indicators grid HTML
+                let html = '<div class="indicators-grid">';
+
+                for (const key in indicators) {
+                    const indicator = indicators[key];
+                    const displayValue = indicator.value !== null
+                        ? `${indicator.value}${indicator.unit}`
+                        : 'N/A';
+
+                    html += `
+                        <div class="indicator-card">
+                            <div class="indicator-name">${indicator.name}</div>
+                            <div class="indicator-value">${displayValue}</div>
+                            <span class="indicator-badge ${indicator.status.color}">
+                                ${indicator.status.label}
+                            </span>
+                            ${indicator.note ? `<p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 8px;">${indicator.note}</p>` : ''}
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+                html += `<p style="margin-top: 15px; font-size: 0.85rem; color: var(--text-secondary);">Source: ${result.data.source}</p>`;
+
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error fetching economic indicators:', error);
+                container.innerHTML = `
+                    <div class="error-state active">
+                        <h3>⚠️ Unable to Load Economic Indicators</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        /**
          * Fetches stock data from the serverless API
-         * Handles loading states, errors, and data rendering
          */
         async function fetchStockData() {
             const loadingState = document.getElementById('loadingState');
@@ -486,7 +913,7 @@
                 updateTimestamp();
 
                 // Render the data table
-                renderTable();
+                await renderTable();
 
                 // Hide loading, show table
                 loadingState.classList.remove('active');
@@ -508,9 +935,9 @@
         }
 
         /**
-         * Renders the stock data table with highlighting for highest/lowest prices
+         * Renders the stock data table with expandable rows
          */
-        function renderTable() {
+        async function renderTable() {
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
 
@@ -523,12 +950,13 @@
             const highestPrice = Math.max(...prices);
             const lowestPrice = Math.min(...prices);
 
-            // Sort by price descending for better visualization
+            // Sort by price descending
             const sortedData = [...stockData].sort((a, b) => b.price - a.price);
 
             // Create table rows
-            sortedData.forEach(stock => {
+            for (const stock of sortedData) {
                 const row = document.createElement('tr');
+                row.onclick = () => toggleExpandableRow(stock.ticker, row);
 
                 // Determine price highlighting class
                 let priceClass = 'price';
@@ -538,25 +966,460 @@
                     priceClass += ' lowest';
                 }
 
-                // Format price with $ and 2 decimal places
+                // Format price
                 const formattedPrice = `$${stock.price.toFixed(2)}`;
-
-                // Create change indicator (neutral for now, could be enhanced with historical data)
-                const changeIndicator = '<span class="change-indicator neutral">—</span>';
 
                 row.innerHTML = `
                     <td><strong>${stock.companyName}</strong></td>
                     <td>${stock.ticker}</td>
                     <td class="${priceClass}">${formattedPrice}</td>
-                    <td>${changeIndicator}</td>
+                    <td><span class="trend-indicator neutral">—</span></td>
+                    <td><button class="btn btn-primary" style="padding: 8px 16px; font-size: 0.9rem;">View Chart</button></td>
                 `;
 
                 tableBody.appendChild(row);
+
+                // Add expandable content container
+                const expandableRow = document.createElement('tr');
+                expandableRow.id = `expandable-${stock.ticker}`;
+                expandableRow.style.display = 'none';
+                expandableRow.innerHTML = `
+                    <td colspan="5">
+                        <div class="expandable-content" id="content-${stock.ticker}">
+                            <div class="chart-container">
+                                <div class="loading-state active">
+                                    <div class="spinner"></div>
+                                    <p>Loading historical data...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(expandableRow);
+            }
+        }
+
+        /**
+         * Toggles expandable row for stock details
+         */
+        async function toggleExpandableRow(ticker, row) {
+            const expandableRow = document.getElementById(`expandable-${ticker}`);
+            const content = document.getElementById(`content-${ticker}`);
+
+            // Close previously expanded row
+            if (expandedRow && expandedRow !== ticker) {
+                const prevExpandableRow = document.getElementById(`expandable-${expandedRow}`);
+                const prevContent = document.getElementById(`content-${expandedRow}`);
+                if (prevExpandableRow && prevContent) {
+                    prevExpandableRow.style.display = 'none';
+                    prevContent.classList.remove('expanded');
+                }
+            }
+
+            // Toggle current row
+            if (expandableRow.style.display === 'none') {
+                expandableRow.style.display = 'table-row';
+                setTimeout(() => content.classList.add('expanded'), 10);
+                expandedRow = ticker;
+
+                // Load historical data if not already loaded
+                if (!chartInstances[ticker]) {
+                    await loadHistoricalData(ticker);
+                }
+            } else {
+                content.classList.remove('expanded');
+                setTimeout(() => {
+                    expandableRow.style.display = 'none';
+                }, 300);
+                expandedRow = null;
+            }
+        }
+
+        /**
+         * Loads historical data and renders chart
+         */
+        async function loadHistoricalData(ticker) {
+            const container = document.getElementById(`content-${ticker}`);
+
+            try {
+                const response = await fetch(`/api/history?ticker=${ticker}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error('Failed to fetch historical data');
+                }
+
+                const data = result.data;
+                renderChart(ticker, data, container);
+
+                // Update trend in table
+                updateTrendIndicator(ticker, data.statistics);
+
+            } catch (error) {
+                console.error(`Error loading historical data for ${ticker}:`, error);
+                container.innerHTML = `
+                    <div class="chart-container">
+                        <div class="error-state active">
+                            <h3>⚠️ Unable to Load Historical Data</h3>
+                            <p>${error.message}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * Renders Chart.js chart for historical data
+         */
+        function renderChart(ticker, data, container) {
+            const stats = data.statistics;
+
+            // Build stats HTML
+            const statsHtml = `
+                <div class="chart-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">30-Day High</div>
+                        <div class="stat-value" style="color: var(--success-green-light);">$${stats.high}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">30-Day Low</div>
+                        <div class="stat-value" style="color: var(--danger-red);">$${stats.low}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Average</div>
+                        <div class="stat-value">$${stats.average}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Trend</div>
+                        <div class="stat-value" style="color: ${stats.trendDirection === 'up' ? 'var(--success-green-light)' : 'var(--danger-red)'};">
+                            ${stats.trendDirection === 'up' ? '↑' : '↓'} ${Math.abs(stats.trendPercent)}%
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = `
+                <div class="chart-container">
+                    ${statsHtml}
+                    <canvas id="chart-${ticker}"></canvas>
+                </div>
+            `;
+
+            // Create chart
+            const ctx = document.getElementById(`chart-${ticker}`).getContext('2d');
+            chartInstances[ticker] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.dataPoints.map(p => p.date),
+                    datasets: [{
+                        label: `${ticker} Price`,
+                        data: data.dataPoints.map(p => p.price),
+                        borderColor: '#E67E22',
+                        backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#ffffff',
+                                font: { size: 14 }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                color: '#b8c1ec',
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#b8c1ec',
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
             });
         }
 
         /**
-         * Updates the timestamp display with a human-readable format
+         * Updates trend indicator in table
+         */
+        function updateTrendIndicator(ticker, stats) {
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                const tickerCell = row.cells?.[1];
+                if (tickerCell && tickerCell.textContent === ticker) {
+                    const trendCell = row.cells[3];
+                    const direction = stats.trendDirection === 'up' ? '↑' : '↓';
+                    const className = stats.trendDirection === 'up' ? 'up' : 'down';
+                    trendCell.innerHTML = `
+                        <span class="trend-indicator ${className}">
+                            ${direction} ${Math.abs(stats.trendPercent)}%
+                        </span>
+                    `;
+                }
+            });
+        }
+
+        /**
+         * Initializes the comparison tab
+         */
+        function initializeComparisonTab() {
+            const container = document.getElementById('stockCheckboxes');
+
+            COMPANIES.forEach(company => {
+                const checkboxItem = document.createElement('div');
+                checkboxItem.className = 'checkbox-item';
+                checkboxItem.innerHTML = `
+                    <input type="checkbox" id="compare-${company.ticker}" value="${company.ticker}">
+                    <label for="compare-${company.ticker}">
+                        <strong>${company.ticker}</strong> - ${company.name}
+                    </label>
+                `;
+
+                // Add click handler for the entire div
+                checkboxItem.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        const checkbox = checkboxItem.querySelector('input');
+                        const checkedCount = document.querySelectorAll('#stockCheckboxes input:checked').length;
+
+                        if (!checkbox.checked && checkedCount >= 5) {
+                            alert('Maximum 5 stocks can be selected for comparison');
+                            return;
+                        }
+
+                        checkbox.checked = !checkbox.checked;
+                    }
+                };
+
+                // Add change handler for checkbox
+                const checkbox = checkboxItem.querySelector('input');
+                checkbox.onchange = (e) => {
+                    const checkedCount = document.querySelectorAll('#stockCheckboxes input:checked').length;
+                    if (checkedCount > 5) {
+                        e.target.checked = false;
+                        alert('Maximum 5 stocks can be selected for comparison');
+                    }
+                };
+
+                container.appendChild(checkboxItem);
+            });
+        }
+
+        /**
+         * Generates comparison chart
+         */
+        async function generateComparison() {
+            const selectedTickers = Array.from(
+                document.querySelectorAll('#stockCheckboxes input:checked')
+            ).map(cb => cb.value);
+
+            if (selectedTickers.length < 2) {
+                alert('Please select at least 2 stocks to compare');
+                return;
+            }
+
+            const loadingState = document.getElementById('comparisonLoadingState');
+            const errorState = document.getElementById('comparisonErrorState');
+            const chartContainer = document.getElementById('comparisonChartContainer');
+            const generateBtn = document.getElementById('generateComparisonBtn');
+
+            // Show loading
+            loadingState.classList.add('active');
+            errorState.classList.remove('active');
+            chartContainer.classList.remove('visible');
+            generateBtn.disabled = true;
+
+            try {
+                // Fetch historical data for all selected stocks
+                const dataPromises = selectedTickers.map(ticker =>
+                    fetch(`/api/history?ticker=${ticker}`).then(res => res.json())
+                );
+
+                const results = await Promise.all(dataPromises);
+
+                // Check for failures
+                const failedStocks = results.filter(r => !r.success);
+                if (failedStocks.length > 0) {
+                    throw new Error('Failed to fetch data for some stocks');
+                }
+
+                // Normalize data to percentage change
+                const datasets = results.map((result, index) => {
+                    const data = result.data;
+                    const ticker = selectedTickers[index];
+                    const firstPrice = data.dataPoints[0].price;
+
+                    const normalizedData = data.dataPoints.map(point => ({
+                        x: point.date,
+                        y: ((point.price - firstPrice) / firstPrice) * 100
+                    }));
+
+                    // Color palette
+                    const colors = [
+                        '#E67E22', // Orange
+                        '#3498DB', // Blue
+                        '#2C5F2D', // Green
+                        '#e74c3c', // Red
+                        '#9b59b6'  // Purple
+                    ];
+
+                    return {
+                        label: ticker,
+                        data: normalizedData,
+                        borderColor: colors[index % colors.length],
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    };
+                });
+
+                // Destroy previous chart if exists
+                if (comparisonChartInstance) {
+                    comparisonChartInstance.destroy();
+                }
+
+                // Create comparison chart
+                const ctx = document.getElementById('comparisonChart').getContext('2d');
+                comparisonChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        aspectRatio: 2,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '30-Day Relative Performance Comparison',
+                                color: '#ffffff',
+                                font: { size: 18, weight: 'bold' }
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    color: '#ffffff',
+                                    font: { size: 14 },
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        label += context.parsed.y.toFixed(2) + '%';
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Percentage Change (%)',
+                                    color: '#ffffff',
+                                    font: { size: 14 }
+                                },
+                                ticks: {
+                                    color: '#b8c1ec',
+                                    callback: function(value) {
+                                        return value.toFixed(1) + '%';
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                type: 'category',
+                                title: {
+                                    display: true,
+                                    text: 'Date',
+                                    color: '#ffffff',
+                                    font: { size: 14 }
+                                },
+                                ticks: {
+                                    color: '#b8c1ec',
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Show chart
+                loadingState.classList.remove('active');
+                chartContainer.classList.add('visible');
+
+            } catch (error) {
+                console.error('Error generating comparison:', error);
+                loadingState.classList.remove('active');
+                errorState.classList.add('active');
+            } finally {
+                generateBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Clears stock selection
+         */
+        function clearSelection() {
+            document.querySelectorAll('#stockCheckboxes input').forEach(cb => {
+                cb.checked = false;
+            });
+
+            const chartContainer = document.getElementById('comparisonChartContainer');
+            chartContainer.classList.remove('visible');
+
+            if (comparisonChartInstance) {
+                comparisonChartInstance.destroy();
+                comparisonChartInstance = null;
+            }
+        }
+
+        /**
+         * Updates the timestamp display
          */
         function updateTimestamp() {
             const timestampEl = document.getElementById('timestamp');
@@ -577,8 +1440,7 @@
         }
 
         /**
-         * Exports the current stock data to a CSV file
-         * Allows data to be used in reports and presentations
+         * Exports the current stock data to CSV
          */
         function exportToCSV() {
             if (stockData.length === 0) {
@@ -586,10 +1448,10 @@
                 return;
             }
 
-            // Create CSV header
+            // CSV header
             const csvHeaders = ['Company', 'Ticker', 'Current Price', 'Timestamp'];
 
-            // Create CSV rows
+            // CSV rows
             const csvRows = stockData.map(stock => {
                 return [
                     stock.companyName,
@@ -599,18 +1461,17 @@
                 ].join(',');
             });
 
-            // Combine headers and rows
+            // Combine
             const csvContent = [
                 csvHeaders.join(','),
                 ...csvRows
             ].join('\n');
 
-            // Create blob and download link
+            // Create blob and download
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
 
-            // Generate filename with current date
             const dateStr = new Date().toISOString().split('T')[0];
             const filename = `competitive-intelligence-${dateStr}.csv`;
 
@@ -618,20 +1479,12 @@
             link.setAttribute('download', filename);
             link.style.visibility = 'hidden';
 
-            // Trigger download
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            // Clean up
             URL.revokeObjectURL(url);
         }
-
-        /**
-         * Auto-refresh functionality (optional enhancement)
-         * Uncomment to enable automatic data refresh every 5 minutes
-         */
-        // setInterval(fetchStockData, 5 * 60 * 1000);
     </script>
 </body>
 </html>
