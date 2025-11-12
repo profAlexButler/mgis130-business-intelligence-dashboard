@@ -71,6 +71,7 @@ function fetchFromApiNinjas(endpoint, apiKey) {
  */
 async function fetchEarningsTranscript(ticker, apiKey) {
   try {
+    console.log(`Fetching earnings transcript for ${ticker}...`);
     const result = await fetchFromApiNinjas(`/v1/earningstranscript?ticker=${ticker}`, apiKey);
 
     if (!result.success) {
@@ -78,6 +79,7 @@ async function fetchEarningsTranscript(ticker, apiKey) {
       return null;
     }
 
+    console.log(`Earnings transcript received for ${ticker}, keys:`, Object.keys(result.data));
     return result.data;
   } catch (error) {
     console.error(`Error fetching earnings transcript for ${ticker}:`, error);
