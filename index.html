@@ -1334,6 +1334,179 @@
             white-space: pre-wrap;
         }
 
+        /* Sentence Analysis Section */
+        .sentiment-analysis-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .sentiment-analysis-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .sentiment-analysis-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .sentiment-analysis-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .sentiment-selector {
+            margin-bottom: 40px;
+        }
+
+        .sentiment-selector h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .sentiment-analysis-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .sentiment-summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .sentiment-summary-card {
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid var(--border-color);
+        }
+
+        .sentiment-summary-card.positive-card {
+            border-color: var(--success-green-light);
+        }
+
+        .sentiment-summary-card.negative-card {
+            border-color: var(--danger-red);
+        }
+
+        .sentiment-summary-card.neutral-card {
+            border-color: var(--text-secondary);
+        }
+
+        .sentiment-summary-card h4 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .sentiment-summary-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .sentiment-summary-card .percent {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent-orange);
+        }
+
+        .sentence-analysis-container {
+            max-height: 700px;
+            overflow-y: auto;
+        }
+
+        .analyzed-sentence {
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--border-color);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .analyzed-sentence.positive {
+            border-left-color: var(--success-green-light);
+            background: rgba(39, 174, 96, 0.05);
+        }
+
+        .analyzed-sentence.negative {
+            border-left-color: var(--danger-red);
+            background: rgba(231, 76, 60, 0.05);
+        }
+
+        .analyzed-sentence.neutral {
+            border-left-color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .analyzed-sentence .sentence-number {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .analyzed-sentence .sentence-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .analyzed-sentence .sentence-sentiment {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .sentiment-label {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .sentiment-label.positive {
+            background: rgba(39, 174, 96, 0.2);
+            color: var(--success-green-light);
+        }
+
+        .sentiment-label.negative {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--danger-red);
+        }
+
+        .sentiment-label.neutral {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .confidence-score {
+            font-size: 0.9rem;
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
         /* Accessibility: Focus states */
         .btn:focus,
         button:focus,
@@ -1385,6 +1558,9 @@
             </button>
             <button class="tab-button" onclick="switchTab('transcript')">
                 📄 View Transcript
+            </button>
+            <button class="tab-button" onclick="switchTab('sentiment')">
+                🎭 Sentence Analysis
             </button>
         </div>
         <!-- Dashboard Tab -->
@@ -1659,6 +1835,57 @@
                 <div class="empty-state" id="transcriptEmptyState">
                     <h3>👆 Select a Company Above</h3>
                     <p>Choose a company to view their most recent earnings call transcript</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sentence Analysis Tab -->
+        <div id="sentiment-tab" class="tab-content">
+            <div class="sentiment-analysis-section">
+                <div class="sentiment-analysis-header">
+                    <h2>🎭 Sentence-by-Sentence Sentiment Analysis</h2>
+                    <p class="sentiment-analysis-subtitle">Watch each sentence get analyzed for sentiment in real-time</p>
+                </div>
+
+                <!-- Company Selection -->
+                <div class="sentiment-selector">
+                    <h3>Select a Company to Analyze</h3>
+                    <div class="sentiment-analysis-buttons" id="sentimentStockButtons">
+                        <!-- Buttons will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Analysis Summary -->
+                <div id="sentimentSummary" style="display: none;">
+                    <div class="sentiment-summary-cards" id="sentimentSummaryContent">
+                        <!-- Summary cards will be displayed here -->
+                    </div>
+                </div>
+
+                <!-- Sentence Analysis Results -->
+                <div id="sentimentResults" style="display: none;">
+                    <div class="sentence-analysis-container" id="sentenceAnalysisContent">
+                        <!-- Analyzed sentences will be displayed here -->
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="sentimentLoadingState" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Analyzing sentences...</p>
+                    <p id="sentimentProgress" style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px;"></p>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state" id="sentimentErrorState" style="display: none;">
+                    <h3>⚠️ Unable to Analyze Sentiment</h3>
+                    <p id="sentimentErrorMessage">Please try again or select a different stock.</p>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="sentimentEmptyState">
+                    <h3>👆 Select a Company Above</h3>
+                    <p>Choose a company to see sentence-by-sentence sentiment analysis</p>
                 </div>
             </div>
         </div>
@@ -3024,6 +3251,243 @@
         // Initialize transcript tab on page load
         window.addEventListener('DOMContentLoaded', () => {
             initializeTranscriptTab();
+        });
+
+        /**
+         * Sentence Analysis Functionality
+         */
+
+        /**
+         * Initializes the sentence analysis tab
+         */
+        function initializeSentimentAnalysisTab() {
+            const container = document.getElementById('sentimentStockButtons');
+            container.innerHTML = '';
+
+            COMPANIES.forEach(company => {
+                const button = document.createElement('div');
+                button.className = 'transcript-button';  // Reuse transcript button styling
+                button.onclick = () => analyzeSentences(company.ticker);
+                button.innerHTML = `
+                    <h4>${company.ticker}</h4>
+                    <p>${company.name}</p>
+                `;
+                container.appendChild(button);
+            });
+        }
+
+        /**
+         * Helper function to split text into sentences
+         */
+        function splitIntoSentences(text) {
+            if (!text) return [];
+            return text
+                .replace(/([.!?])\s+/g, '$1|')
+                .split('|')
+                .map(s => s.trim())
+                .filter(s => s.length > 20); // Filter out very short fragments
+        }
+
+        /**
+         * Analyzes all sentences and displays them
+         */
+        async function analyzeSentences(ticker) {
+            const loadingState = document.getElementById('sentimentLoadingState');
+            const errorState = document.getElementById('sentimentErrorState');
+            const emptyState = document.getElementById('sentimentEmptyState');
+            const summaryContainer = document.getElementById('sentimentSummary');
+            const resultsContainer = document.getElementById('sentimentResults');
+            const progressElement = document.getElementById('sentimentProgress');
+
+            // Show loading
+            loadingState.style.display = 'flex';
+            errorState.style.display = 'none';
+            emptyState.style.display = 'none';
+            summaryContainer.style.display = 'none';
+            resultsContainer.style.display = 'none';
+
+            // Highlight selected button
+            document.querySelectorAll('.sentiment-analysis-buttons .transcript-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.closest('.transcript-button').classList.add('selected');
+
+            try {
+                // First, get the transcript from the earnings-analysis API
+                progressElement.textContent = 'Fetching transcript...';
+                const response = await fetch(`/api/earnings-analysis?ticker=${ticker}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success || !result.data.earningsData || !result.data.earningsData.hasTranscript) {
+                    throw new Error('No transcript available for this company');
+                }
+
+                // Get the transcript text
+                let transcriptText = '';
+                if (result.data.earningsData.transcriptSplit && Array.isArray(result.data.earningsData.transcriptSplit)) {
+                    // Get text from last 10 statements
+                    const statements = result.data.earningsData.transcriptSplit.slice(-10);
+                    transcriptText = statements.map(s => s.text).filter(t => t).join(' ');
+                } else if (result.data.earningsData.transcript) {
+                    // Use last 2000 characters
+                    const transcript = result.data.earningsData.transcript;
+                    transcriptText = transcript.substring(Math.max(0, transcript.length - 2000));
+                }
+
+                if (!transcriptText) {
+                    throw new Error('Could not extract transcript text');
+                }
+
+                // Split into sentences
+                progressElement.textContent = 'Splitting into sentences...';
+                const sentences = splitIntoSentences(transcriptText);
+                console.log(`Split into ${sentences.length} sentences`);
+
+                // Limit to first 15 sentences for demo
+                const sentencesToAnalyze = sentences.slice(0, 15);
+
+                // Clear results container
+                const sentenceContainer = document.getElementById('sentenceAnalysisContent');
+                sentenceContainer.innerHTML = '';
+
+                // Analyze sentences one by one with delays
+                const results = [];
+                let positiveCount = 0;
+                let negativeCount = 0;
+                let neutralCount = 0;
+
+                for (let i = 0; i < sentencesToAnalyze.length; i++) {
+                    progressElement.textContent = `Analyzing sentence ${i + 1} of ${sentencesToAnalyze.length}...`;
+
+                    // Use keyword-based sentiment analysis
+                    const sentence = sentencesToAnalyze[i];
+                    const sentimentResult = determineSentiment(sentence);
+
+                    results.push(sentimentResult);
+
+                    // Update counts
+                    if (sentimentResult.sentiment === 'POSITIVE') positiveCount++;
+                    else if (sentimentResult.sentiment === 'NEGATIVE') negativeCount++;
+                    else neutralCount++;
+
+                    // Display the sentence immediately
+                    displayAnalyzedSentence(sentimentResult, i + 1, sentenceContainer);
+
+                    // Small delay to show real-time analysis
+                    if (i < sentencesToAnalyze.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                }
+
+                // Show summary
+                displaySentimentSummary(positiveCount, negativeCount, neutralCount, sentencesToAnalyze.length);
+
+                // Hide loading, show results
+                loadingState.style.display = 'none';
+                summaryContainer.style.display = 'block';
+                resultsContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error analyzing sentences:', error);
+                loadingState.style.display = 'none';
+                errorState.style.display = 'block';
+                document.getElementById('sentimentErrorMessage').textContent = error.message;
+            }
+        }
+
+        /**
+         * Keyword-based sentiment determination
+         */
+        function determineSentiment(sentence) {
+            const positive = ['growth', 'increase', 'strong', 'positive', 'excellent', 'improved', 'success', 'opportunity', 'momentum', 'confident', 'optimistic', 'record', 'expansion', 'gain', 'better', 'up'];
+            const negative = ['decline', 'decrease', 'weak', 'negative', 'concern', 'challenge', 'difficult', 'loss', 'uncertainty', 'risk', 'headwind', 'pressure', 'disappointed', 'down', 'lower', 'worst'];
+
+            const lowerSentence = sentence.toLowerCase();
+            let positiveCount = 0;
+            let negativeCount = 0;
+
+            positive.forEach(word => {
+                if (lowerSentence.includes(word)) positiveCount++;
+            });
+
+            negative.forEach(word => {
+                if (lowerSentence.includes(word)) negativeCount++;
+            });
+
+            let sentiment = 'NEUTRAL';
+            let score = 0.5;
+
+            if (positiveCount > negativeCount) {
+                sentiment = 'POSITIVE';
+                score = Math.min(0.5 + (positiveCount * 0.1), 0.95);
+            } else if (negativeCount > positiveCount) {
+                sentiment = 'NEGATIVE';
+                score = Math.max(0.5 - (negativeCount * 0.1), 0.05);
+            }
+
+            return {
+                sentence: sentence,
+                sentiment: sentiment,
+                score: score
+            };
+        }
+
+        /**
+         * Displays a single analyzed sentence
+         */
+        function displayAnalyzedSentence(result, number, container) {
+            const sentenceDiv = document.createElement('div');
+            sentenceDiv.className = `analyzed-sentence ${result.sentiment.toLowerCase()}`;
+
+            sentenceDiv.innerHTML = `
+                <div class="sentence-number">Sentence #${number}</div>
+                <div class="sentence-text">${result.sentence}</div>
+                <div class="sentence-sentiment">
+                    <span class="sentiment-label ${result.sentiment.toLowerCase()}">${result.sentiment}</span>
+                    <span class="confidence-score">Confidence: ${(result.score * 100).toFixed(0)}%</span>
+                </div>
+            `;
+
+            container.appendChild(sentenceDiv);
+        }
+
+        /**
+         * Displays the sentiment summary
+         */
+        function displaySentimentSummary(positive, negative, neutral, total) {
+            const summaryContent = document.getElementById('sentimentSummaryContent');
+
+            const positivePercent = Math.round((positive / total) * 100);
+            const negativePercent = Math.round((negative / total) * 100);
+            const neutralPercent = Math.round((neutral / total) * 100);
+
+            summaryContent.innerHTML = `
+                <div class="sentiment-summary-card positive-card">
+                    <h4>✅ Positive</h4>
+                    <div class="value">${positive}</div>
+                    <div class="percent">${positivePercent}%</div>
+                </div>
+                <div class="sentiment-summary-card neutral-card">
+                    <h4>➖ Neutral</h4>
+                    <div class="value">${neutral}</div>
+                    <div class="percent">${neutralPercent}%</div>
+                </div>
+                <div class="sentiment-summary-card negative-card">
+                    <h4>⚠️ Negative</h4>
+                    <div class="value">${negative}</div>
+                    <div class="percent">${negativePercent}%</div>
+                </div>
+            `;
+        }
+
+        // Initialize sentiment analysis tab on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeSentimentAnalysisTab();
         });
     </script>
 </body>
