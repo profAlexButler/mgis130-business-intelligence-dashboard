@@ -842,6 +842,105 @@
             line-height: 1.6;
         }
 
+        /* Sentiment Breakdown Section */
+        .sentiment-breakdown-section {
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sentiment-breakdown-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .sentiment-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-item {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+            border: 2px solid var(--border-color);
+        }
+
+        .stat-item.positive {
+            border-color: var(--success-green-light);
+        }
+
+        .stat-item.negative {
+            border-color: var(--danger-red);
+        }
+
+        .stat-item.neutral {
+            border-color: var(--text-secondary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-percent {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent-orange);
+        }
+
+        .sentiment-highlight {
+            background: var(--card-bg);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--border-color);
+        }
+
+        .sentiment-highlight.positive-highlight {
+            border-left-color: var(--success-green-light);
+            background: rgba(39, 174, 96, 0.05);
+        }
+
+        .sentiment-highlight.negative-highlight {
+            border-left-color: var(--danger-red);
+            background: rgba(231, 76, 60, 0.05);
+        }
+
+        .sentiment-highlight h4 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .highlight-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .highlight-score {
+            font-size: 0.85rem;
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
         /* Earnings Comparison Section */
         .earnings-comparison-section {
             background: var(--card-bg);
@@ -2150,9 +2249,9 @@
             const rec = data.recommendation;
             const company = COMPANIES.find(c => c.ticker === data.ticker);
 
-            const sentimentEmoji = data.sentimentAnalysis
-                ? (data.sentimentAnalysis.sentiment === 'POSITIVE' ? '😊' :
-                   data.sentimentAnalysis.sentiment === 'NEGATIVE' ? '😟' : '😐')
+            const sentimentEmoji = data.sentimentAnalysis && data.sentimentAnalysis.overall
+                ? (data.sentimentAnalysis.overall.sentiment === 'POSITIVE' ? '😊' :
+                   data.sentimentAnalysis.overall.sentiment === 'NEGATIVE' ? '😟' : '😐')
                 : '❓';
 
             const trendEmoji = data.historicalTrend
@@ -2182,12 +2281,12 @@
                         </div>
 
                         <div class="detail-card">
-                            <h4>Sentiment ${sentimentEmoji}</h4>
-                            <div class="value">${data.sentimentAnalysis
-                                ? data.sentimentAnalysis.sentiment
+                            <h4>Overall Sentiment ${sentimentEmoji}</h4>
+                            <div class="value">${data.sentimentAnalysis && data.sentimentAnalysis.overall
+                                ? data.sentimentAnalysis.overall.sentiment
                                 : 'N/A'}</div>
-                            <div class="subtext">${data.sentimentAnalysis
-                                ? `${(data.sentimentAnalysis.score * 100).toFixed(0)}% confidence`
+                            <div class="subtext">${data.sentimentAnalysis && data.sentimentAnalysis.breakdown
+                                ? `${data.sentimentAnalysis.breakdown.total} sentences analyzed`
                                 : 'No earnings data'}</div>
                         </div>
 
@@ -2207,6 +2306,46 @@
                             <div class="subtext">Risk: ${rec.riskLevel}</div>
                         </div>
                     </div>
+
+                    ${data.sentimentAnalysis && data.sentimentAnalysis.breakdown ? `
+                        <div class="sentiment-breakdown-section">
+                            <h3>🎭 Detailed Sentiment Analysis</h3>
+
+                            <div class="sentiment-stats">
+                                <div class="stat-item positive">
+                                    <div class="stat-label">✅ Positive</div>
+                                    <div class="stat-value">${data.sentimentAnalysis.breakdown.positive}</div>
+                                    <div class="stat-percent">${data.sentimentAnalysis.sentimentRatio.positivePercent}%</div>
+                                </div>
+                                <div class="stat-item neutral">
+                                    <div class="stat-label">➖ Neutral</div>
+                                    <div class="stat-value">${data.sentimentAnalysis.breakdown.neutral}</div>
+                                    <div class="stat-percent">${data.sentimentAnalysis.sentimentRatio.neutralPercent}%</div>
+                                </div>
+                                <div class="stat-item negative">
+                                    <div class="stat-label">⚠️ Negative</div>
+                                    <div class="stat-value">${data.sentimentAnalysis.breakdown.negative}</div>
+                                    <div class="stat-percent">${data.sentimentAnalysis.sentimentRatio.negativePercent}%</div>
+                                </div>
+                            </div>
+
+                            ${data.sentimentAnalysis.highlights && data.sentimentAnalysis.highlights.mostPositive ? `
+                                <div class="sentiment-highlight positive-highlight">
+                                    <h4>📈 Most Positive Statement</h4>
+                                    <p class="highlight-text">"${data.sentimentAnalysis.highlights.mostPositive.sentence}"</p>
+                                    <div class="highlight-score">Confidence: ${(data.sentimentAnalysis.highlights.mostPositive.score * 100).toFixed(0)}%</div>
+                                </div>
+                            ` : ''}
+
+                            ${data.sentimentAnalysis.highlights && data.sentimentAnalysis.highlights.mostNegative ? `
+                                <div class="sentiment-highlight negative-highlight">
+                                    <h4>📉 Most Negative Statement</h4>
+                                    <p class="highlight-text">"${data.sentimentAnalysis.highlights.mostNegative.sentence}"</p>
+                                    <div class="highlight-score">Confidence: ${(Math.abs(1 - data.sentimentAnalysis.highlights.mostNegative.score) * 100).toFixed(0)}%</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
 
                     <div class="reasoning-section">
                         <h3>📋 Analysis Factors</h3>

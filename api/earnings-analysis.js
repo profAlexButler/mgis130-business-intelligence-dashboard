@@ -88,46 +88,141 @@ async function fetchEarningsTranscript(ticker, apiKey) {
 }
 
 /**
- * Analyzes sentiment of text using API Ninjas
+ * Splits text into sentences for analysis
  */
-async function analyzeSentiment(text, apiKey) {
-  try {
-    console.log('analyzeSentiment called with text length:', text.length);
+function splitIntoSentences(text) {
+  if (!text) return [];
 
-    // Sentiment API has text length limits and URL length constraints
-    // Keep it under 1000 chars to ensure encoded URL stays within limits
-    const maxLength = 1000;
-    const textToAnalyze = text.length > maxLength ? text.substring(0, maxLength) : text;
+  // Split on sentence boundaries (., !, ?)
+  // Keep the punctuation and handle common abbreviations
+  const sentences = text
+    .replace(/([.!?])\s+/g, '$1|')
+    .split('|')
+    .map(s => s.trim())
+    .filter(s => s.length > 20); // Filter out very short fragments
+
+  return sentences;
+}
+
+/**
+ * Analyzes sentiment of a single sentence using API Ninjas
+ */
+async function analyzeSentenceSentiment(sentence, apiKey) {
+  try {
+    // Keep sentences under reasonable length for URL encoding
+    const maxLength = 500;
+    const textToAnalyze = sentence.length > maxLength ? sentence.substring(0, maxLength) : sentence;
 
     const encodedText = encodeURIComponent(textToAnalyze);
-    console.log('Calling sentiment API with encoded text length:', encodedText.length);
-
-    // URL length safety check
-    if (encodedText.length > 1500) {
-      console.log('Encoded text too long, truncating further...');
-      const shorterText = text.substring(0, 500);
-      const result = await fetchFromApiNinjas(`/v1/sentiment?text=${encodeURIComponent(shorterText)}`, apiKey);
-
-      if (!result.success) {
-        console.log('Sentiment analysis API failed:', result.statusCode, result.message);
-        return null;
-      }
-
-      console.log('Sentiment analysis result:', JSON.stringify(result.data));
-      return result.data;
-    }
 
     const result = await fetchFromApiNinjas(`/v1/sentiment?text=${encodedText}`, apiKey);
 
     if (!result.success) {
-      console.log('Sentiment analysis API failed:', result.statusCode, result.message);
       return null;
     }
 
-    console.log('Sentiment analysis result:', JSON.stringify(result.data));
-    return result.data;
+    return {
+      sentence: textToAnalyze,
+      sentiment: result.data.sentiment,
+      score: result.data.score
+    };
   } catch (error) {
-    console.error('Error analyzing sentiment:', error);
+    console.error('Error analyzing sentence sentiment:', error);
+    return null;
+  }
+}
+
+/**
+ * Analyzes sentiment for multiple sentences with rate limiting
+ */
+async function analyzeSentimentDetailed(text, apiKey) {
+  try {
+    console.log('Starting detailed sentiment analysis...');
+
+    // Split into sentences
+    const sentences = splitIntoSentences(text);
+    console.log(`Split into ${sentences.length} sentences`);
+
+    if (sentences.length === 0) {
+      return null;
+    }
+
+    // Limit to first 20 sentences to avoid too many API calls
+    const sentencesToAnalyze = sentences.slice(0, 20);
+    console.log(`Analyzing ${sentencesToAnalyze.length} sentences...`);
+
+    // Analyze sentences with small delays to avoid rate limiting
+    const results = [];
+    for (let i = 0; i < sentencesToAnalyze.length; i++) {
+      const result = await analyzeSentenceSentiment(sentencesToAnalyze[i], apiKey);
+      if (result) {
+        results.push(result);
+      }
+
+      // Small delay between requests (100ms)
+      if (i < sentencesToAnalyze.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    console.log(`Successfully analyzed ${results.length} sentences`);
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    // Aggregate results
+    const positive = results.filter(r => r.sentiment === 'POSITIVE');
+    const negative = results.filter(r => r.sentiment === 'NEGATIVE');
+    const neutral = results.filter(r => r.sentiment === 'NEUTRAL');
+
+    // Find most positive and most negative
+    const mostPositive = positive.length > 0
+      ? positive.reduce((max, r) => r.score > max.score ? r : max)
+      : null;
+
+    const mostNegative = negative.length > 0
+      ? negative.reduce((min, r) => r.score < min.score ? r : min)
+      : null;
+
+    // Calculate average score
+    const avgScore = results.reduce((sum, r) => sum + r.score, 0) / results.length;
+
+    // Determine overall sentiment based on counts and average
+    let overallSentiment = 'NEUTRAL';
+    if (positive.length > negative.length && avgScore > 0.55) {
+      overallSentiment = 'POSITIVE';
+    } else if (negative.length > positive.length && avgScore < 0.45) {
+      overallSentiment = 'NEGATIVE';
+    }
+
+    const aggregatedData = {
+      overall: {
+        sentiment: overallSentiment,
+        score: avgScore
+      },
+      breakdown: {
+        positive: positive.length,
+        negative: negative.length,
+        neutral: neutral.length,
+        total: results.length
+      },
+      highlights: {
+        mostPositive: mostPositive,
+        mostNegative: mostNegative
+      },
+      sentimentRatio: {
+        positivePercent: Math.round((positive.length / results.length) * 100),
+        negativePercent: Math.round((negative.length / results.length) * 100),
+        neutralPercent: Math.round((neutral.length / results.length) * 100)
+      }
+    };
+
+    console.log('Sentiment analysis complete:', JSON.stringify(aggregatedData.breakdown));
+
+    return aggregatedData;
+  } catch (error) {
+    console.error('Error in detailed sentiment analysis:', error);
     return null;
   }
 }
@@ -213,20 +308,22 @@ function generateRecommendation(stockData, sentimentData, economicData, historic
 
   let reasoning = [];
 
-  // 1. SENTIMENT ANALYSIS (40% weight)
-  if (sentimentData && sentimentData.score !== undefined) {
-    const score = sentimentData.score;
-    const sentiment = sentimentData.sentiment;
+  // 1. SENTIMENT ANALYSIS (40% weight) - Now with detailed breakdown
+  if (sentimentData && sentimentData.overall) {
+    const score = sentimentData.overall.score;
+    const sentiment = sentimentData.overall.sentiment;
+    const breakdown = sentimentData.breakdown;
+    const ratios = sentimentData.sentimentRatio;
 
     if (sentiment === 'POSITIVE' && score > 0.5) {
       factors.sentiment = 1;
-      reasoning.push(`✅ Positive earnings sentiment (${(score * 100).toFixed(0)}% confidence) indicates strong company outlook`);
+      reasoning.push(`✅ Positive earnings sentiment: ${ratios.positivePercent}% positive statements (${breakdown.positive}/${breakdown.total} analyzed)`);
     } else if (sentiment === 'NEGATIVE' || score < 0.3) {
       factors.sentiment = -1;
-      reasoning.push(`⚠️ Negative earnings sentiment suggests challenges ahead`);
+      reasoning.push(`⚠️ Negative earnings sentiment: ${ratios.negativePercent}% negative statements suggests challenges`);
     } else {
       factors.sentiment = 0;
-      reasoning.push(`➖ Neutral earnings sentiment indicates mixed outlook`);
+      reasoning.push(`➖ Mixed earnings sentiment: ${ratios.positivePercent}% positive, ${ratios.negativePercent}% negative`);
     }
   }
 
@@ -423,14 +520,14 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Analyze earnings sentiment
+    // Analyze earnings sentiment with detailed sentence-level analysis
     let sentimentData = null;
     if (earningsTranscript) {
       console.log('Earnings transcript received, extracting key statements...');
       const keyStatements = extractKeyStatements(earningsTranscript);
       console.log('Key statements extracted:', keyStatements ? `${keyStatements.length} characters` : 'empty/null');
       if (keyStatements) {
-        sentimentData = await analyzeSentiment(keyStatements, apiKey);
+        sentimentData = await analyzeSentimentDetailed(keyStatements, apiKey);
         console.log('Sentiment data result:', sentimentData ? 'received' : 'null');
       } else {
         console.log('No key statements extracted, skipping sentiment analysis');
@@ -457,8 +554,10 @@ module.exports = async function handler(req, res) {
         hasTranscript: true
       } : { hasTranscript: false },
       sentimentAnalysis: sentimentData ? {
-        score: sentimentData.score,
-        sentiment: sentimentData.sentiment
+        overall: sentimentData.overall,
+        breakdown: sentimentData.breakdown,
+        highlights: sentimentData.highlights,
+        sentimentRatio: sentimentData.sentimentRatio
       } : null,
       historicalTrend: historicalTrend,
       recommendation: recommendation
