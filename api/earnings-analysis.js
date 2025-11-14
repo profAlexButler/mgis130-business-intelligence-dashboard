@@ -553,10 +553,18 @@ module.exports = async function handler(req, res) {
         year: earningsTranscript.year,
         hasTranscript: true,
         transcript: earningsTranscript.transcript || null,
-        transcriptSplit: earningsTranscript.transcript_split ?
-          (typeof earningsTranscript.transcript_split === 'string' ?
-            JSON.parse(earningsTranscript.transcript_split) :
-            earningsTranscript.transcript_split) : null,
+        transcriptSplit: (() => {
+          try {
+            if (!earningsTranscript.transcript_split) return null;
+            if (typeof earningsTranscript.transcript_split === 'string') {
+              return JSON.parse(earningsTranscript.transcript_split);
+            }
+            return earningsTranscript.transcript_split;
+          } catch (error) {
+            console.error('Error parsing transcript_split:', error);
+            return null;
+          }
+        })(),
         participants: earningsTranscript.participants || null
       } : { hasTranscript: false },
       sentimentAnalysis: sentimentData ? {
