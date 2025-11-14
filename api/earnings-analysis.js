@@ -551,7 +551,13 @@ module.exports = async function handler(req, res) {
         date: earningsTranscript.date,
         quarter: earningsTranscript.quarter,
         year: earningsTranscript.year,
-        hasTranscript: true
+        hasTranscript: true,
+        transcript: earningsTranscript.transcript || null,
+        transcriptSplit: earningsTranscript.transcript_split ?
+          (typeof earningsTranscript.transcript_split === 'string' ?
+            JSON.parse(earningsTranscript.transcript_split) :
+            earningsTranscript.transcript_split) : null,
+        participants: earningsTranscript.participants || null
       } : { hasTranscript: false },
       sentimentAnalysis: sentimentData ? {
         overall: sentimentData.overall,

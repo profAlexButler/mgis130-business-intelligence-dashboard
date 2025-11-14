@@ -1179,6 +1179,161 @@
             opacity: 0.7;
         }
 
+        /* Transcript Section */
+        .transcript-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .transcript-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .transcript-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .transcript-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .transcript-selector {
+            margin-bottom: 40px;
+        }
+
+        .transcript-selector h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .transcript-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .transcript-button {
+            padding: 20px;
+            background: var(--secondary-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .transcript-button:hover {
+            border-color: var(--accent-orange);
+            background: var(--card-bg);
+            transform: translateY(-2px);
+        }
+
+        .transcript-button.selected {
+            border-color: var(--accent-orange);
+            background: rgba(230, 126, 34, 0.1);
+        }
+
+        .transcript-button h4 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .transcript-button p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .transcript-meta {
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        .transcript-meta h3 {
+            font-size: 1.5rem;
+            color: var(--accent-orange);
+            margin-bottom: 15px;
+        }
+
+        .transcript-meta p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .transcript-meta strong {
+            color: var(--text-primary);
+        }
+
+        .transcript-content {
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .transcript-content h4 {
+            color: var(--accent-orange);
+            font-size: 1.2rem;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .transcript-content h4:first-child {
+            margin-top: 0;
+        }
+
+        .transcript-statement {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .transcript-statement .speaker {
+            font-weight: 600;
+            color: var(--accent-orange);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .transcript-statement .role {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .transcript-statement .text {
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .transcript-full-text {
+            color: var(--text-primary);
+            line-height: 1.8;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+        }
+
         /* Accessibility: Focus states */
         .btn:focus,
         button:focus,
@@ -1227,6 +1382,9 @@
             </button>
             <button class="tab-button" onclick="switchTab('earnings')">
                 💰 Compare Earnings
+            </button>
+            <button class="tab-button" onclick="switchTab('transcript')">
+                📄 View Transcript
             </button>
         </div>
         <!-- Dashboard Tab -->
@@ -1455,6 +1613,52 @@
                 <div class="empty-state" id="earningsEmptyState">
                     <h3>👆 Select Two Companies Above</h3>
                     <p>Choose two companies from the dropdowns to compare their financial statements</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Transcript Tab -->
+        <div id="transcript-tab" class="tab-content">
+            <div class="transcript-section">
+                <div class="transcript-header">
+                    <h2>📄 Earnings Call Transcript</h2>
+                    <p class="transcript-subtitle">View raw earnings call transcripts to understand the source of sentiment analysis</p>
+                </div>
+
+                <!-- Company Selection -->
+                <div class="transcript-selector">
+                    <h3>Select a Company</h3>
+                    <div class="transcript-buttons" id="transcriptStockButtons">
+                        <!-- Buttons will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Transcript Content -->
+                <div id="transcriptResults" style="display: none;">
+                    <div class="transcript-meta" id="transcriptMeta">
+                        <!-- Company and quarter info will be displayed here -->
+                    </div>
+                    <div class="transcript-content" id="transcriptContent">
+                        <!-- Transcript text will be displayed here -->
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="transcriptLoadingState" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Loading earnings transcript...</p>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state" id="transcriptErrorState" style="display: none;">
+                    <h3>⚠️ Unable to Load Transcript</h3>
+                    <p id="transcriptErrorMessage">Please try again or select a different stock.</p>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="transcriptEmptyState">
+                    <h3>👆 Select a Company Above</h3>
+                    <p>Choose a company to view their most recent earnings call transcript</p>
                 </div>
             </div>
         </div>
@@ -2674,6 +2878,153 @@
 
             return `<span class="metric-value ${colorClass}">${formattedValue}</span>${indicator}`;
         }
+
+        /**
+         * Transcript Viewer Functionality
+         */
+
+        /**
+         * Initializes the transcript tab
+         */
+        function initializeTranscriptTab() {
+            const container = document.getElementById('transcriptStockButtons');
+            container.innerHTML = '';
+
+            COMPANIES.forEach(company => {
+                const button = document.createElement('div');
+                button.className = 'transcript-button';
+                button.onclick = () => loadTranscript(company.ticker);
+                button.innerHTML = `
+                    <h4>${company.ticker}</h4>
+                    <p>${company.name}</p>
+                `;
+                container.appendChild(button);
+            });
+        }
+
+        /**
+         * Loads and displays the earnings transcript
+         */
+        async function loadTranscript(ticker) {
+            const loadingState = document.getElementById('transcriptLoadingState');
+            const errorState = document.getElementById('transcriptErrorState');
+            const emptyState = document.getElementById('transcriptEmptyState');
+            const resultsContainer = document.getElementById('transcriptResults');
+
+            // Show loading
+            loadingState.style.display = 'flex';
+            errorState.style.display = 'none';
+            emptyState.style.display = 'none';
+            resultsContainer.style.display = 'none';
+
+            // Highlight selected button
+            document.querySelectorAll('.transcript-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.closest('.transcript-button').classList.add('selected');
+
+            try {
+                const response = await fetch(`/api/earnings-analysis?ticker=${ticker}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error('Failed to load transcript');
+                }
+
+                // Display transcript
+                displayTranscript(result.data, ticker);
+
+                loadingState.style.display = 'none';
+                resultsContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading transcript:', error);
+                loadingState.style.display = 'none';
+                errorState.style.display = 'block';
+                document.getElementById('transcriptErrorMessage').textContent = error.message;
+            }
+        }
+
+        /**
+         * Displays the earnings transcript
+         */
+        function displayTranscript(data, ticker) {
+            const metaContainer = document.getElementById('transcriptMeta');
+            const contentContainer = document.getElementById('transcriptContent');
+            const company = COMPANIES.find(c => c.ticker === ticker);
+
+            // Display metadata
+            if (data.earningsData && data.earningsData.hasTranscript) {
+                metaContainer.innerHTML = `
+                    <h3>${company ? company.name : ticker} (${ticker})</h3>
+                    <p><strong>Quarter:</strong> Q${data.earningsData.quarter} ${data.earningsData.year}</p>
+                    <p><strong>Date:</strong> ${data.earningsData.date}</p>
+                    ${data.earningsData.participants ? `<p><strong>Participants:</strong> ${data.earningsData.participants}</p>` : ''}
+                `;
+            } else {
+                metaContainer.innerHTML = `
+                    <h3>${company ? company.name : ticker} (${ticker})</h3>
+                    <p style="color: var(--warning-yellow);"><strong>⚠️ No transcript available for this company</strong></p>
+                `;
+                contentContainer.innerHTML = `
+                    <p style="color: var(--text-secondary); text-align: center; padding: 40px;">
+                        Earnings transcript data is not currently available for ${ticker}.
+                        This may be because the most recent earnings call has not yet occurred or the transcript has not been published.
+                    </p>
+                `;
+                return;
+            }
+
+            // Display the transcript
+            if (data.earningsData.transcriptSplit && Array.isArray(data.earningsData.transcriptSplit)) {
+                // Display structured transcript with speakers
+                let html = '<h4>Earnings Call Transcript</h4>';
+
+                data.earningsData.transcriptSplit.forEach((item, index) => {
+                    html += `
+                        <div class="transcript-statement">
+                            ${item.name ? `<div class="speaker">${item.name}</div>` : ''}
+                            ${item.role ? `<div class="role">${item.role}</div>` : ''}
+                            <div class="text">${item.text || ''}</div>
+                        </div>
+                    `;
+                });
+
+                contentContainer.innerHTML = html;
+            } else if (data.earningsData.transcript) {
+                // Display full text transcript
+                contentContainer.innerHTML = `
+                    <h4>Earnings Call Transcript</h4>
+                    <div class="transcript-full-text">${data.earningsData.transcript}</div>
+                `;
+            } else {
+                // Transcript exists but no text available
+                contentContainer.innerHTML = `
+                    <div style="background: rgba(230, 126, 34, 0.1); padding: 20px; border-radius: 8px; border: 1px solid var(--accent-orange); margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; color: var(--accent-orange);">📊 Transcript Available</h4>
+                        <p style="color: var(--text-secondary); margin: 0;">
+                            The earnings call transcript for <strong>${ticker}</strong> Q${data.earningsData.quarter} ${data.earningsData.year}
+                            is being used for sentiment analysis.
+                        </p>
+                    </div>
+                    <p style="color: var(--text-secondary);">
+                        The transcript is currently being used for the sentence-by-sentence sentiment analysis
+                        in the AI Recommendations tab. To view detailed sentiment analysis with specific statements,
+                        please visit the <strong>🤖 AI Recommendations</strong> tab and select ${ticker}.
+                    </p>
+                `;
+            }
+        }
+
+        // Initialize transcript tab on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeTranscriptTab();
+        });
     </script>
 </body>
 </html>
