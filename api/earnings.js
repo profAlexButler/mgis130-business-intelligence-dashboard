@@ -90,39 +90,48 @@ function getMostRecentQuarter() {
 }
 
 /**
- * Fetches earnings data for a ticker
+ * Fetches earnings data for a ticker, trying multiple quarters if needed
  */
 async function fetchEarningsData(ticker, apiKey) {
   try {
     const { quarter, year } = getMostRecentQuarter();
-    console.log(`Fetching earnings data for ${ticker} - Q${quarter} ${year}...`);
+    console.log(`Fetching earnings data for ${ticker} - starting with Q${quarter} ${year}...`);
 
-    // Request the most recent quarter
-    const result = await fetchFromApiNinjas(`/v1/earnings?ticker=${ticker}&year=${year}&quarter=${quarter}`, apiKey);
+    // Try up to 8 quarters back (2 years) to find available data
+    let currentQuarter = quarter;
+    let currentYear = year;
+    let attempts = 0;
+    const maxAttempts = 8;
 
-    if (!result.success) {
-      console.log(`Earnings API failed for ${ticker} Q${quarter} ${year}:`, result.statusCode);
+    while (attempts < maxAttempts) {
+      console.log(`Attempt ${attempts + 1}: Trying ${ticker} Q${currentQuarter} ${currentYear}...`);
 
-      // Try previous quarter as fallback
-      const prevQuarter = quarter === 1 ? 4 : quarter - 1;
-      const prevYear = quarter === 1 ? year - 1 : year;
-      console.log(`Trying previous quarter: Q${prevQuarter} ${prevYear}...`);
+      const result = await fetchFromApiNinjas(
+        `/v1/earnings?ticker=${ticker}&year=${currentYear}&quarter=${currentQuarter}`,
+        apiKey
+      );
 
-      const fallbackResult = await fetchFromApiNinjas(`/v1/earnings?ticker=${ticker}&year=${prevYear}&quarter=${prevQuarter}`, apiKey);
-
-      if (!fallbackResult.success) {
-        console.log(`Fallback also failed for ${ticker}`);
-        return null;
+      if (result.success) {
+        console.log(`✓ Earnings data received for ${ticker} - Q${currentQuarter} ${currentYear}`);
+        console.log(`Filing date: ${result.data.filing_info?.filing_date}, Period end: ${result.data.filing_info?.period_end_date}`);
+        return result.data;
       }
 
-      console.log(`Earnings data received for ${ticker} (fallback to Q${prevQuarter} ${prevYear})`);
-      return fallbackResult.data;
+      console.log(`✗ No data for ${ticker} Q${currentQuarter} ${currentYear} (status: ${result.statusCode})`);
+
+      // Move to previous quarter
+      if (currentQuarter === 1) {
+        currentQuarter = 4;
+        currentYear--;
+      } else {
+        currentQuarter--;
+      }
+
+      attempts++;
     }
 
-    console.log(`Earnings data received for ${ticker} - Q${quarter} ${year}`);
-    console.log(`Filing date: ${result.data.filing_info?.filing_date}, Period end: ${result.data.filing_info?.period_end_date}`);
-
-    return result.data;
+    console.log(`Failed to find earnings data for ${ticker} after ${maxAttempts} attempts`);
+    return null;
   } catch (error) {
     console.error(`Error fetching earnings for ${ticker}:`, error);
     return null;
